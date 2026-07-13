@@ -1,0 +1,73 @@
+services:
+  # ─── FastAPI Backend ───────────────────────────────────────────────────────
+  backend:
+    build: ./backend
+    container_name: omega-backend
+    ports:
+      - "8000:8000"
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    environment:
+      AZURE_TENANT_ID: ${AZURE_TENANT_ID:-}
+      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID:-}
+      GITHUB_PAT: ${GITHUB_PAT:-${github-pat:-}}
+      "github-pat": ${github-pat:-}
+      AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING:-${azure-storage-connection-string:-}}
+      "azure-storage-connection-string": ${azure-storage-connection-string:-}
+      AZURE_WIKI_CONTAINER: ${AZURE_WIKI_CONTAINER:-${azure-wiki-container:-"omega-wiki"}}
+      "azure-wiki-container": ${azure-wiki-container:-"omega-wiki"}
+      AGENT_SERVICE_URL: http://agent:8000
+    volumes:
+      - ./backend/app:/app/app  # live-reload in dev
+      - ./mock_data:/app/mock_data
+    networks:
+      - omega-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ─── LangGraph Agent Service ────────────────────────────────────────────────
+  agent:
+    build: ./agent
+    container_name: omega-agent
+    ports:
+      - "8001:8000"
+    environment:
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      "gemini-api-key": ${gemini-api-key:-}
+      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-gpt-4o}
+      BACKEND_URL: http://backend:8000
+    volumes:
+      - ./agent/app:/app/app
+      - ./mock_data:/app/mock_data
+    networks:
+      - omega-net
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ─── React/TypeScript Frontend ─────────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    container_name: omega-frontend
+    ports:
+      - "5173:80"
+    networks:
+      - omega-net
+    depends_on:
+      - backend
+      - agent
+    restart: unless-stopped
+
+networks:
+  omega-net:
+    driver: bridge

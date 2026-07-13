@@ -1,0 +1,2 @@
+# PRODUCTION RESTORATION: 2026-03-26T16:00:00Z
+# Fully restored all authentication and security hardening.

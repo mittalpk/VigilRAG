@@ -1,8 +1,9 @@
 #!/bin/bash
 # ── OmegaNexus State Fix Script ──
 # Run this to sync your Azure resources with Terraform
+# Usage: SUB_ID=<your-subscription-id> ./fix_state.sh
 
-SUB_ID="ecc63471-f21a-46af-a01f-2db799285343"
+SUB_ID="${SUB_ID:?Set SUB_ID to your Azure subscription ID before running this script}"
 RG="rg-omega-nexus"
 
 echo "Syncing Backend..."

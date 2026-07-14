@@ -19,12 +19,12 @@ class Settings(BaseSettings):
     )
 
     # Azure AD
-    azure_tenant_id: str = "78e7f11a-6897-4e0c-8184-4cae827df24e"
-    azure_client_id: str = "04b07795-8ddb-461a-bbee-02f9e1bf7b46"
+    azure_tenant_id: str = ""
+    azure_client_id: str = "04b07795-8ddb-461a-bbee-02f9e1bf7b46"  # Microsoft's well-known public Azure CLI client ID
     skip_auth: bool = True  # Temporary bypass until Frontend MSAL integration is built
 
     # CORS
-    allowed_origins: List[str] = ["https://ca-omega-frontend.gentlesea-072b973e.francecentral.azurecontainerapps.io"]
+    allowed_origins: List[str] = []
 
     # LLM
     openai_api_key: SecretStr = SecretStr("")

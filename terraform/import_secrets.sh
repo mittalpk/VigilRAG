@@ -1,12 +1,13 @@
 #!/bin/bash
 # Import existing Key Vault secrets into Terraform state
+# Usage: SUBSCRIPTION_ID=<your-sub-id> KV_NAME=<your-key-vault-name> ./import_secrets.sh
 
 set -e
 
 # Azure details
-SUBSCRIPTION_ID="ecc63471-f21a-46af-a01f-2db799285343"
+SUBSCRIPTION_ID="${SUBSCRIPTION_ID:?Set SUBSCRIPTION_ID to your Azure subscription ID before running this script}"
 RG_NAME="rg-omega-nexus"
-KV_NAME="kv-omega-nexus-ecc63471"
+KV_NAME="${KV_NAME:?Set KV_NAME to your Key Vault name before running this script}"
 KV_URI="https://${KV_NAME}.vault.azure.net/"
 
 echo "Importing existing Key Vault secrets into Terraform state..."

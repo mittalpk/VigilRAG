@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     )
 
     # CORS
-    allowed_origins: List[str] = ["https://ca-omega-frontend.gentlesea-072b973e.francecentral.azurecontainerapps.io"]
+    allowed_origins: List[str] = []
 
     def __init__(self, **data):
         super().__init__(**data)

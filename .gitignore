@@ -1,6 +1,8 @@
+# --- Dotfolders: ignored by default. Add an exception below for any that must be tracked. ---
+.*/
+!.github/
+
 # --- IDE ---
-.vscode/
-.idea/
 *.swp
 *.swo
 
@@ -10,7 +12,6 @@ __pycache__/
 *.pyo
 *.pyd
 .env
-.venv/
 env/
 venv/
 build/
@@ -22,9 +23,6 @@ frontend/dist/
 frontend/build/
 .eslintcache
 
-# --- Docker ---
-.docker-build/
-
 # --- Project Specific ---
 riverty.db
 omega.db
@@ -32,7 +30,6 @@ backend/app/riverty.db
 backend/app/omega.db
 
 # --- Terraform ---
-.terraform/
 *.tfstate
 *.tfstate.*
 *.tfstate.backup

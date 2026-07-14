@@ -50,9 +50,9 @@ variable "github_pat" {
 }
 
 variable "github_repo_owner" {
-  description = "GitHub Repository Owner (e.g. pkmittal)"
+  description = "GitHub Repository Owner (e.g. your-github-username)"
   type        = string
-  default     = "pkmittal"
+  default     = "your-github-username"
 }
 
 variable "gemini_api_key" {

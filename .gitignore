@@ -24,9 +24,7 @@ frontend/build/
 .eslintcache
 
 # --- Project Specific ---
-riverty.db
 omega.db
-backend/app/riverty.db
 backend/app/omega.db
 
 # --- Terraform ---

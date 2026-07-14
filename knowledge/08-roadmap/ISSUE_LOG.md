@@ -15,6 +15,18 @@ Add a new entry at the top of Section 3 (most recent first) with the next sequen
 
 ## 3. Log
 
+### ISSUE-012
+**Date found:** 2026-07-14 · **Severity:** Medium · **Status:** Fixed
+**Found during:** First real CI runs on the self-hosted runner (post PR #1 merge)
+**Description:** `actions/setup-python@v5`'s `cache: 'pip'` and `actions/setup-node@v4`'s `cache: 'npm'` inputs upload the pip/npm cache directory to GitHub's remote `actions/cache` service after each job. On the persistent self-hosted runner, `pip cache dir` resolves to `/home/pkm/.cache/pip` and npm's cache to `/home/pkm/.npm` — the same machine-wide caches shared by every other project on this development machine, not scoped to this repo. Those directories had grown to 4.1GB and 2.1GB respectively. A job hung indefinitely at the post-job cache-save step, stuck at "Sent 0 of 4278460165 (0.0%)" forever.
+**Resolution:** Removed the `cache:`/`cache-dependency-path` inputs from all three `actions/setup-python`/`actions/setup-node` steps in `ci.yml`. This is not a workaround — it's the correct fix: pip and npm already read from those same local caches on every install regardless of `actions/cache`, and this runner's disk already persists between jobs (unlike the ephemeral GitHub-hosted runners `actions/cache` is designed for), so the remote upload/download was pure redundant overhead that happened to be actively broken here. See the explanatory comment block in `ci.yml` itself.
+
+### ISSUE-011
+**Date found:** 2026-07-14 · **Severity:** Medium · **Status:** Fixed
+**Found during:** First PR-triggered CI run to actually reach the pytest step (PR #1)
+**Description:** `ci.yml` invoked tests as bare `pytest backend/tests -v` / `pytest agent/tests -v`. This does not add the checkout's repo root to `sys.path`, so `from backend.app.config import ...` / `from agent.app.config import ...` failed with `ModuleNotFoundError: No module named 'backend'` (or `agent`). Never caught before because this was literally the first CI run in the repo's history to reach that step successfully — all prior verification this session used `python3 -m pytest` locally, which behaves differently (adds CWD to `sys.path[0]`) and masked the bug.
+**Resolution:** Changed both invocations to `python -m pytest backend/tests -v` / `python -m pytest agent/tests -v` in `ci.yml`.
+
 ### ISSUE-010
 **Date found:** 2026-07-14 · **Severity:** Low · **Status:** Open
 **Found during:** Runbook §4.2 (Data layer)
@@ -79,6 +91,6 @@ Add a new entry at the top of Section 3 (most recent first) with the next sequen
 
 | Status | Count |
 |---|---|
-| Fixed | 8 |
+| Fixed | 10 |
 | Resolved | 1 |
 | Open | 1 |

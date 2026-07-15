@@ -39,11 +39,12 @@ Stand up a self-hosted runner on the dedicated Linux Mint machine, following the
 
 ## Verification
 
-- [ ] Runner shows `online` in `mittalpk/OmegaNexus` → Settings → Actions → Runners
-- [ ] A real `workflow_dispatch` run completes successfully end-to-end on the new runner
-- [ ] `gha-runner-omeganexus` confirmed to have no SSH access and is not in `sudo`/`docker` groups
-- [ ] `ufw status verbose` shows deny-by-default with only the intended LAN-restricted SSH rule (if SSH is kept enabled at all)
-- [ ] Sleep/power settings confirmed to keep the machine online while plugged in
+- [x] Runner shows `online` in `mittalpk/OmegaNexus` → Settings → Actions → Runners — confirmed via `gh api repos/mittalpk/OmegaNexus/actions/runners` (`status: online`, `labels: [self-hosted, Linux, X64, omeganexus-mint]`)
+- [x] A real run completes successfully end-to-end on the new runner — PR #4's CI run passed (`filter` 7s, `frontend-validate` 15s, `backend-test` 34s, `agent-test` 55s), and the merge-triggered run on `main` also passed (1m32s)
+- [x] `gha-runner-omeganexus` confirmed to have no SSH access and is not in `sudo`/`docker` groups — `groups gha-runner-omeganexus` returns only its own group; `sshd_config`'s `AllowUsers pune` excludes it explicitly (it couldn't authenticate even with a key)
+- [x] `sshd_config` confirmed hardened: `PasswordAuthentication no`, `PermitRootLogin no`, `AllowUsers pune`, `MaxAuthTries 3` (`ufw` ruleset itself not independently re-verified — owner confirmed done)
+- [x] Sleep/power settings confirmed by the machine owner to keep it online while plugged in (not via `systemd-logind`'s `HandleLidSwitch`, which was checked and found unset — done through a different mechanism, e.g. Mint's Power Management applet)
+- [x] Process-level isolation double-checked post-setup: `ps aux` on the host shows every runner process (both this repo's and the separate, pre-existing NexVocab runner sharing the same physical machine) owned by its own dedicated `gha-runner-*` account — nothing running under the personal `pune` account
 
 ## Related
 

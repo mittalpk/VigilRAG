@@ -1,0 +1,39 @@
+# --- Dotfolders: ignored by default. Add an exception below for any that must be tracked. ---
+.*
+!.gitignore
+!.github/
+
+# --- IDE ---
+*.swp
+*.swo
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+env/
+venv/
+build/
+dist/
+
+# --- Node / Frontend ---
+node_modules/
+frontend/dist/
+frontend/build/
+.eslintcache
+
+# --- Project Specific ---
+evikap.db
+backend/app/evikap.db
+
+# --- Terraform ---
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform.lock.hcl
+
+# --- OS ---
+.DS_Store
+Thumbs.db

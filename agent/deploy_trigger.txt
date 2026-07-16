@@ -1,0 +1,2 @@
+# DIAGNOSTIC PUSH: 2026-03-26T16:15:00Z
+# Adding /api/v1/auth/debug to Agent to verify INTERNAL_API_KEY loading.

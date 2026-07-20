@@ -1,16 +1,16 @@
-# US-036 — Full Observability — Cost Dashboard & Chaos-Tested Reliability
+# US-036 — Full Observability — Cost Dashboard, SLO Monitoring, Load Test & Chaos-Tested Reliability
 
 ## User Story
 
 **As a** Platform Owner / Budget Owner,  
-**I want to** view a cost-per-query dashboard tracking LLM inference cost, and have the platform's reliability validated through a chaos test that confirms graceful degradation when a source connector fails,  
-**So that** the platform's operational costs are transparent and its reliability behaviour is proven, not assumed.
+**I want to** view a cost-per-query dashboard, an availability SLO dashboard, and have the platform's reliability validated through a load test and a chaos test that confirms graceful degradation when a source connector fails,  
+**So that** the platform's operational costs and availability are transparent and its reliability at scale is proven, not assumed.
 
 ---
 
 ## Description
 
-This is the PI-2 completion of FEAT-11 (platform hardening), covering the remainder of the NFR-005 (Reliability) and NFR-009 (Cost optimisation) requirements deferred from PI-1. It adds a cost-per-query dashboard (using token counts captured by US-028's OTel spans) and implements and validates graceful degradation via a chaos test.
+This is the PI-2 completion of FEAT-11 (platform hardening), covering the remainder of the NFR-005 (Reliability), NFR-008 (Availability), NFR-009 (Cost optimisation), and the NFR-001 (Scalability) load-test prerequisite deferred from PI-1. It adds a cost-per-query dashboard (using token counts from US-028's OTel spans), an availability SLO dashboard (NFR-008), validates graceful degradation via a chaos test (NFR-005), and executes a load test at 5× pilot volume (NFR-001 prerequisite before enterprise rollout approval).
 
 ---
 
@@ -18,6 +18,8 @@ This is the PI-2 completion of FEAT-11 (platform hardening), covering the remain
 
 - Gives the Budget Owner the evidence needed for the ROI model: cost per query trending flat or down as volume grows.
 - Proves the "graceful degradation" claim (NFR-005): returning a partial answer when one source is unavailable is better than failing the entire request.
+- Provides the availability SLO dashboard (NFR-008) required for monthly SLO review: query-path uptime monitored against the 99.5% MVP target.
+- Satisfies the NFR-001 load-test prerequisite: the platform must demonstrate it handles 5× pilot volume before enterprise rollout approval.
 
 ---
 
@@ -37,12 +39,27 @@ This is the PI-2 completion of FEAT-11 (platform hardening), covering the remain
 - The response does not fail with a 5xx error.
 - The chaos test result is documented and signed off.
 
+**Given** the platform has been running at pilot scale for ≥2 weeks,  
+**When** a load test at 5× pilot volume (50 concurrent users, ≤50K chunks corpus) is executed,  
+**Then:**
+- Query-path p50 latency stays within the NFR-006 target at 5× load.
+- No single-instance bottleneck is identified (per NFR-001 audit finding).
+- The load test report is filed as a prerequisite artefact for enterprise rollout approval.
+
+**Given** the availability SLO dashboard is deployed,  
+**When** the Platform Owner reviews it monthly,  
+**Then:**
+- Query-path uptime is tracked against the 99.5% MVP target (NFR-008).
+- An alert fires when the 30-day rolling availability drops below 99.5%.
+
 ---
 
 ## Functional Requirements
 
 - NFR-005 (Reliability — graceful degradation).
+- NFR-008 (Availability — 99.5% SLO dashboard and alerting).
 - NFR-009 (Cost optimisation — cost-per-query dashboard).
+- NFR-001 (Scalability — 5× load test, prerequisite for enterprise rollout).
 
 ---
 
@@ -50,6 +67,8 @@ This is the PI-2 completion of FEAT-11 (platform hardening), covering the remain
 
 - NFR-009 (Cost optimisation) — dashboard trends flat or down per unit query volume growth (reviewed at PI boundary).
 - NFR-005 (Reliability) — chaos test validates graceful degradation before enterprise rollout approval.
+- NFR-008 (Availability) — uptime monitoring against the 99.5% MVP SLO target; alert on 30-day rolling breach.
+- NFR-001 (Scalability) — load test at 5× pilot volume confirms no single-instance bottleneck before enterprise rollout.
 
 ---
 
@@ -81,6 +100,8 @@ This is the PI-2 completion of FEAT-11 (platform hardening), covering the remain
 - **Cost calculation:** `cost = (input_tokens * flash_input_price + output_tokens * flash_output_price)` per span where `llm.model = "gemini-flash"`. Similarly for Pro. USD rates from the model's published pricing page.
 - **Cost aggregation:** A `query_costs` DB view or materialized view that sums token costs per query from the `answer` records (if token counts are persisted there) or from Langfuse's API.
 - **Frontend dashboard:** `CostDashboard.tsx` — a line chart of cost/query per day + a summary card showing total cost this PI.
+- **Availability SLO dashboard:** `SLODashboard.tsx` (or a tab within `CostDashboard`) — 30-day rolling uptime percentage from the health-probe endpoint (`/health` on the backend and agent service); alert threshold: < 99.5% triggers a Slack/email alert via an alerting channel already configured.
+- **Load test procedure:** Use `locust` or `k6`; target 50 virtual users, 5 minutes ramp-up, 15 minutes sustained; assert p50 latency ≤ NFR-006 target; p90 latency ≤ 2× NFR-006 target; error rate ≤ 0.5%; document and file as a load test report.
 - **Chaos test procedure:**
   1. Confirm both connectors are indexed and working.
   2. Revoke/remove the GitHub API token from the secrets store.
@@ -96,10 +117,15 @@ This is the PI-2 completion of FEAT-11 (platform hardening), covering the remain
 
 - [ ] Cost-per-query calculation implemented (from OTel token attributes).
 - [ ] `CostDashboard.tsx` frontend page live and admin-accessible.
+- [ ] `SLODashboard.tsx` (or tab) showing 30-day rolling uptime against the 99.5% MVP SLO target.
+- [ ] Availability alert configured: fires when 30-day uptime drops below 99.5%.
+- [ ] Load test at 5× pilot volume executed; results documented in a load test report (p50 ≤ NFR-006 target, error rate ≤ 0.5%).
+- [ ] No single-instance bottleneck identified in load test results.
+- [ ] Load test report filed as a prerequisite artefact for enterprise rollout approval.
 - [ ] Graceful degradation implemented: `ConnectorUnavailableError` caught; partial answer returned with `source_availability_warning`.
 - [ ] Chaos test executed and documented (GitHub connector simulated unavailable → partial wiki answer returned, no 5xx).
 - [ ] Chaos test report filed with PI-2 exit review package.
-- [ ] NFR-005 and NFR-009 sign-off at PI-2 boundary review.
+- [ ] NFR-005, NFR-008, NFR-009, and NFR-001 (load test) sign-off at PI-2 boundary review.
 
 ---
 
@@ -113,6 +139,8 @@ This is the PI-2 completion of FEAT-11 (platform hardening), covering the remain
 
 ## Related Epics / Features
 
-- FEAT-11 (Platform hardening — reliability + cost)
-- NFR-005 (Reliability)
-- NFR-009 (Cost optimisation)
+- FEAT-11 (Platform hardening — reliability + cost + availability + scalability)
+- NFR-001 (Scalability — load test prerequisite)
+- NFR-005 (Reliability — chaos test)
+- NFR-008 (Availability — SLO dashboard)
+- NFR-009 (Cost optimisation — cost dashboard)

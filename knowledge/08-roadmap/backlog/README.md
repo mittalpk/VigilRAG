@@ -112,7 +112,8 @@ Each story follows a consistent 16-section template:
 | US-033 | [US-033-retrieval-reranking.md](US-033-retrieval-reranking.md) | Retrieval Reranking — Cross-Encoder Step | FEAT-18 | Medium | M |
 | US-034 | [US-034-model-system-card-publication.md](US-034-model-system-card-publication.md) | Model / System Card Publication | FEAT-19 | Medium | M |
 | US-035 | [US-035-terraform-network-drift.md](US-035-terraform-network-drift.md) | Terraform / Network Drift Reconciliation | FEAT-11 | High | M |
-| US-036 | [US-036-cost-dashboard-chaos-reliability.md](US-036-cost-dashboard-chaos-reliability.md) | Full Observability — Cost Dashboard & Chaos-Tested Reliability | FEAT-11 | High | M |
+| US-036 | [US-036-cost-dashboard-chaos-reliability.md](US-036-cost-dashboard-chaos-reliability.md) | Full Observability — Cost Dashboard, SLO Monitoring, Load Test & Chaos-Tested Reliability | FEAT-11 | High | L |
+| US-039 | [US-039-full-compliance-audit-log.md](US-039-full-compliance-audit-log.md) | Full Compliance-Grade Audit Log — Retention, Export & Scheduled Reports | FEAT-08 | High | L |
 
 ---
 
@@ -131,9 +132,9 @@ Each story follows a consistent 16-section template:
 |---|---|---|
 | PI-0 | 4 | ~14–24 days |
 | PI-1 | 24 | ~50–85 days |
-| PI-2 | 8 | ~25–45 days |
+| PI-2 | 9 | ~33–60 days |
 | PI-3 | 2 | ~4–17 days |
-| **Total** | **38** | **~93–171 days** |
+| **Total** | **39** | **~101–186 days** |
 
 ---
 
@@ -155,21 +156,21 @@ Each story follows a consistent 16-section template:
 | FR-005 | US-030 |
 | FR-006 | US-014, US-015, US-016 |
 | FR-007 | US-031 |
-| FR-008 | US-013, US-018 |
+| FR-008 | US-013, US-018 (PI-1 minimal), US-039 (PI-2 full compliance-grade) |
 | FR-009 | US-019, US-020 |
 | FR-010 | US-037 |
 | FR-011 | US-008 (hook), US-033 (real) |
 | FR-012 | US-024, US-025, US-026, US-027 |
 | FR-013 | US-034 |
-| NFR-001 | US-038 |
-| NFR-002 | US-014, US-015, US-016, US-017, US-035 |
-| NFR-003 | US-026 |
-| NFR-004 | US-013, US-018 |
-| NFR-005 | US-036 |
-| NFR-006 | US-008, US-028, US-033 |
+| NFR-001 | US-036 (5× load test), US-038 (architecture graduation) |
+| NFR-002 | US-014, US-015, US-016, US-017, US-035, US-039 |
+| NFR-003 | US-026 (PII redaction + training data-lineage check) |
+| NFR-004 | US-013, US-018 (PI-1), US-039 (PI-2 full + compliance sign-off) |
+| NFR-005 | US-036 (chaos test) |
+| NFR-006 | US-008, US-028, US-033, US-036 (load test) |
 | NFR-007 | US-028, US-036 |
-| NFR-008 | US-028 (observability for SLO monitoring) |
+| NFR-008 | US-036 (SLO dashboard + availability alerting) |
 | NFR-009 | US-028 (token cost capture), US-036 (cost dashboard) |
 | NFR-010 | US-023 (CI gate) |
 | NFR-011 | US-021, US-022, US-023 |
-| NFR-012 | US-034 |
+| NFR-012 | US-034 (model cards + annual governance review scheduling) |

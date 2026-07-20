@@ -94,6 +94,7 @@ This story integrates Microsoft Presidio for PII detection and redaction in the 
 - [ ] Presidio startup failure → HTTP 503 (fail-closed).
 - [ ] Unit tests: email redacted, person name redacted, code identifier not falsely flagged.
 - [ ] NFR-003 PII-tagged fixture test passes.
+- [ ] NFR-003 second verification: a model-training data-lineage check script (`scripts/check_training_lineage.py`) confirms that no source content from the pilot corpus reaches a training pipeline without a logged consent record. For PI-1 the check is: (a) confirm `TRAINING_ENABLED=false` in env, and (b) assert no data export jobs exist that target a training endpoint. Document the check result.
 - [ ] CI passes.
 - [ ] Execution Runbook §4.5 third bullet marked `[x]`.
 

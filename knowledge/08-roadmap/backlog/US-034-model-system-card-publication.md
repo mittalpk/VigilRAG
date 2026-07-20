@@ -83,8 +83,9 @@ This story implements FR-013: a CI-triggered process that, on merge to `main`, g
       git commit -m "ci: publish model card for ${{ github.sha }}"
       git push
   ```
-- **Card template sections:** Title, Pipeline Version, Published At, Purpose, Capabilities, Known Limitations, Data Sources (source types indexed), Evaluation Results (RAGAS table), Evaluation Run ID, Dataset Version, Governance Framework Mapping (NIST AI RMF / ISO 42001 placeholder).
+- **Card template sections:** Title, Pipeline Version, Published At, Purpose, Capabilities, Known Limitations, Data Sources (source types indexed), Evaluation Results (RAGAS table), Evaluation Run ID, Dataset Version, **Governance Framework Mapping** (a real mapping to NIST AI RMF or ISO/IEC 42001 function areas — e.g., "GOVERN 1.1: AI risk policies → [Compliance & Security Framework §2](...)", not a placeholder), AI Risk Tier.
 - **`GET /api/v1/model-cards/latest`:** Reads the most recent card file from the filesystem (or a `model_cards` DB table); admin-only.
+- **Annual governance review:** The first annual review is scheduled as a recurring calendar event (AI Solutions Architect + Compliance Officer) at the time this story is completed. The review confirms the governance-framework mapping in the published card is still current. This is NFR-012's second verification clause.
 
 ---
 
@@ -93,9 +94,11 @@ This story implements FR-013: a CI-triggered process that, on merge to `main`, g
 - [ ] `scripts/publish_model_card.py` implemented with Jinja2 template.
 - [ ] Card published to `knowledge/model-cards/v<sha>-card.md` on `main` merge.
 - [ ] Card scores match the `EvaluationRun` record for the same version (verified by CI).
+- [ ] Card template includes a real (not placeholder) Governance Framework Mapping section (NIST AI RMF or ISO/IEC 42001 function-area mapping).
 - [ ] CI step added to `ci.yml` (runs after evaluation gate, on `main` only).
 - [ ] `GET /api/v1/model-cards/latest` endpoint implemented and admin-only.
 - [ ] Acceptance check: reviewer can locate any production release's card from `knowledge/model-cards/` without engineering help.
+- [ ] First annual governance framework mapping review scheduled as a recurring calendar event (AI Solutions Architect + Compliance Officer).
 - [ ] Unit tests: card generation from a mock `EvaluationRun` record.
 - [ ] CI passes.
 

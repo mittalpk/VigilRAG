@@ -105,6 +105,13 @@ This story builds the compliance-facing interface to the `Query`, `EvidenceItem`
 
 ## Related Epics / Features
 
-- FEAT-08 (Audit and access review)
+- FEAT-08 (Audit and access review — PI-1 slice)
 - NFR-004 (Compliance)
 - Execution Runbook §4.6
+
+> **PI-2 deferred scope (→ US-039):** The FEAT-08 program backlog entry explicitly splits this feature across two PIs. The following items are deliberately **not** in this story and belong to a separate PI-2 story (US-039 — Full Compliance-Grade Audit Log):
+> - Data-retention policy enforcement (automated purge / archive after the configured retention period)
+> - Compliance-grade export (CSV / PDF audit export for regulatory submissions)
+> - Scheduled audit summary reports (weekly/monthly email/Slack digest for the Compliance Officer)
+> - Full-text search over `Query.text` content
+> - Regulated-data source onboarding sign-off using the audit log schema (requires US-035 network drift + Compliance sign-off)

@@ -9,7 +9,7 @@
 ## EPIC-01: Enterprise Knowledge Intelligence Platform
 
 ### Epic name
-VigilRAG — Enterprise Vigilant Knowledge & Agentic Platform
+VigilRAG — Governance-Gated Enterprise Agentic RAG Platform
 
 ### Business outcome hypothesis
 

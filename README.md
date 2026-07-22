@@ -1,4 +1,4 @@
-# VigilRAG — Enterprise Vigilant Knowledge & Agentic Platform
+# VigilRAG — Governance-Gated Enterprise Agentic RAG Platform
 
 [![License: PolyForm Shield 1.0.0](https://img.shields.io/badge/License-PolyForm%20Shield%201.0.0-purple.svg)](LICENSE)
 [![CI](https://github.com/mittalpk/VigilRAG/actions/workflows/ci.yml/badge.svg)](https://github.com/mittalpk/VigilRAG/actions/workflows/ci.yml)

@@ -1,5 +1,9 @@
 # US-001 — Pilot Business Unit Identification & Source-System Access Confirmation
 
+**Status:** Completed & Archived · **Date:** 2026-07-22  
+**Artifact:** [US-001-pilot-bu-charter.json](../artifacts/US-001-pilot-bu-charter.json)  
+**Validator Module:** `backend/app/services/source_connectivity_validator.py`  
+
 ## User Story
 
 **As a** Program Lead / AI Solutions Architect,  
@@ -83,13 +87,13 @@ Before any technical build work can proceed, the platform needs a committed pilo
 
 ## Definition of Done
 
-- [ ] Named pilot business unit confirmed with written sponsor sign-off.
-- [ ] At least two source systems scoped (one code repo, one wiki).
-- [ ] Least-privilege read credentials provisioned and stored in secrets manager.
-- [ ] Connection test passes for each source system (basic API call returns data).
-- [ ] Sensitivity classification document signed by source system owner.
-- [ ] Pilot scope document (question types, user population, time window) agreed and filed.
-- [ ] All outputs filed as inputs to US-002 (time-motion survey) and US-004 (security design spike).
+- [x] Named pilot business unit confirmed with written sponsor sign-off ("Digital Services & Engineering").
+- [x] At least two source systems scoped (one code repo, one wiki).
+- [x] Least-privilege read credentials provisioned and stored in secrets manager (`kv-evikap-pilot-gh-pat`, `kv-evikap-pilot-wiki-token`).
+- [x] Connection test passes for each source system via automated validator service (`SourceConnectivityValidator`).
+- [x] Sensitivity classification document signed by source system owner.
+- [x] Pilot scope document agreed and filed as JSON artifact (`US-001-pilot-bu-charter.json`).
+- [x] All outputs filed as inputs to US-002 (time-motion survey) and US-004 (security design spike).
 
 ---
 

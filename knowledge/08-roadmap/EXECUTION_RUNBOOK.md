@@ -27,7 +27,7 @@ Per [Roadmap §5](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) and [
 
 ## 4. Phase 1 — Foundation & MVP
 
-Per [Roadmap §5](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) and [MVP Definition](../05-lean-product/MVP_DEFINITION.md). Status below reflects the actual state of the `Evikap` repository as of this document's last update — some hardening tasks were completed ahead of the rest of Phase 1 because they were zero-risk, high-severity fixes that didn't need to wait for feature work.
+Per [Roadmap §5](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) and [MVP Definition](../05-lean-product/MVP_DEFINITION.md). Status below reflects the actual state of the `VigilRAG` repository as of this document's last update — some hardening tasks were completed ahead of the rest of Phase 1 because they were zero-risk, high-severity fixes that didn't need to wait for feature work.
 
 ### 4.1 Security & repo hygiene (done ahead of schedule)
 

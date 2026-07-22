@@ -20,7 +20,7 @@ Before any technical build work can proceed, the platform needs a committed pilo
 
 ## Business Value
 
-- Converts the EVIKAP program from a theoretical exercise to a real, scoped pilot with a committed sponsor.
+- Converts the VigilRAG program from a theoretical exercise to a real, scoped pilot with a committed sponsor.
 - Establishes the concrete knowledge sources (repo + wiki) that will be used in all validation and MVP work.
 - Aligns with the [Epic Hypothesis Gate 0](../EPIC_HYPOTHESIS.md) funding criterion: no PI-1 funding without validated discovery.
 
@@ -89,7 +89,7 @@ Before any technical build work can proceed, the platform needs a committed pilo
 
 - [x] Named pilot business unit confirmed with written sponsor sign-off ("Digital Services & Engineering").
 - [x] At least two source systems scoped (one code repo, one wiki).
-- [x] Least-privilege read credentials provisioned and stored in secrets manager (`kv-evikap-pilot-gh-pat`, `kv-evikap-pilot-wiki-token`).
+- [x] Least-privilege read credentials provisioned and stored in secrets manager (`kv-vigilrag-pilot-gh-pat`, `kv-vigilrag-pilot-wiki-token`).
 - [x] Connection test passes for each source system via automated validator service (`SourceConnectivityValidator`).
 - [x] Sensitivity classification document signed by source system owner.
 - [x] Pilot scope document agreed and filed as JSON artifact (`US-001-pilot-bu-charter.json`).
@@ -107,6 +107,6 @@ Before any technical build work can proceed, the platform needs a committed pilo
 
 ## Related Epics / Features
 
-- EPIC-01 (EVIKAP platform delivery)
+- EPIC-01 (VigilRAG platform delivery)
 - Discovery phase gate: [Problem/Solution Fit §4](../../05-lean-product/PROBLEM_SOLUTION_FIT.md#4-validation-sequencing-and-gates)
 - Execution Runbook §3.1

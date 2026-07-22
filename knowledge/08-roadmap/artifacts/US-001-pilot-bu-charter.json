@@ -27,8 +27,8 @@
       "source_id": "src-github-001",
       "name": "Core Platform Repository",
       "source_type": "github_repo",
-      "endpoint_url": "https://api.github.com/repos/evikap/core-platform",
-      "secret_reference": "kv-evikap-pilot-gh-pat",
+      "endpoint_url": "https://api.github.com/repos/vigilrag/core-platform",
+      "secret_reference": "kv-vigilrag-pilot-gh-pat",
       "owner_email": "techlead.core@example.com",
       "sensitivity_level": "internal-sensitive",
       "sensitivity_signed_off": true
@@ -38,7 +38,7 @@
       "name": "Engineering Architecture Wiki",
       "source_type": "confluence_wiki",
       "endpoint_url": "https://wiki.example.com/rest/api/content/space/ENG",
-      "secret_reference": "kv-evikap-pilot-wiki-token",
+      "secret_reference": "kv-vigilrag-pilot-wiki-token",
       "owner_email": "archboard@example.com",
       "sensitivity_level": "internal-general",
       "sensitivity_signed_off": true

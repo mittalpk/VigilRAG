@@ -103,7 +103,7 @@ class SourceConnectivityValidator:
     async def verify_source_connection(self, source: SourceSystemConfig) -> ValidationResult:
         """Verifies API connection to a specific source system."""
         headers = {
-            "User-Agent": "EVIKAP-Source-Validator/1.0",
+            "User-Agent": "VigilRAG-Source-Validator/1.0",
             "Accept": "application/json",
         }
 

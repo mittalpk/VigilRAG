@@ -314,50 +314,79 @@ export default function App() {
 
             {knowData && (
               <div className="results-container mt-24 fade-in">
+                <h4 className="section-heading">Response & Synthesis</h4>
+                <p className="synthesis-text">{knowData.answer_synthesis || `Retrieved ${knowData.evidence?.length || 0} evidence records from hybrid semantic search.`}</p>
 
-                <h4 className="section-heading">Synthesis</h4>
-                <p className="synthesis-text">{knowData.answer_synthesis}</p>
-
-                <h4 className="section-heading">Extracted Facts</h4>
-                <div className="facts-grid">
-                  {knowData.facts.map((f, i) => (
-                    <div key={i} className="fact-box">
-                      <div className="fact-conf">Confidence: {(f.confidence * 100).toFixed(0)}%</div>
-                      <div>{f.fact}</div>
-                      <div className="fact-sources">
-                        Derived from:&nbsp;
-                        {f.derived_from_stable_ids.map(id => (
-                          <span key={id} className="code-badge">{id}</span>
+                {knowData.evidence && knowData.evidence.length > 0 ? (
+                  <>
+                    <h4 className="section-heading">Source Evidence & Citations (US-010 / US-012)</h4>
+                    <div className="facts-grid">
+                      {knowData.evidence.map((ev, i) => (
+                        <div key={ev.chunk_id || i} className="fact-box">
+                          <div className="fact-conf">
+                            Score: {(ev.relevance_score * 100).toFixed(1)}% | Ref: {ev.permissions_ref || 'public'}
+                          </div>
+                          <div style={{ whiteSpace: 'pre-wrap', marginTop: '6px' }}>{ev.content}</div>
+                          <div className="fact-sources" style={{ marginTop: '12px' }}>
+                            <span className="code-badge" style={{ backgroundColor: ev.source_id?.includes('wiki') ? '#10b981' : '#3b82f6', color: '#fff' }}>
+                              {ev.source_id?.includes('wiki') ? 'Wiki Source' : 'GitHub Source'}
+                            </span>
+                            &nbsp;
+                            <a
+                              className="meta-link"
+                              href={ev.source_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{ color: '#60a5fa', textDecoration: 'underline' }}
+                            >
+                              {ev.parent_doc_id || ev.source_url}
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  knowData.facts && (
+                    <>
+                      <h4 className="section-heading">Extracted Facts</h4>
+                      <div className="facts-grid">
+                        {knowData.facts.map((f, i) => (
+                          <div key={i} className="fact-box">
+                            <div className="fact-conf">Confidence: {(f.confidence * 100).toFixed(0)}%</div>
+                            <div>{f.fact}</div>
+                          </div>
                         ))}
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    </>
+                  )
+                )}
 
-                <h4 className="section-heading">Traceable Metadata</h4>
-                <div className="meta-grid">
-                  {knowData.metadata.map((m, i) => (
-                    <div key={i} className="meta-row">
-                      <span className="source-tag">{m.source_system}</span>
-                      <a
-                        className="meta-link"
-                        href={m.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        title={m.url}
-                      >
-                        {m.stable_id}
-                      </a>
-                      <span className="timestamp">
-                        {new Date(m.timestamp).toLocaleString()}
-                      </span>
+                <details className="mt-16" style={{ cursor: 'pointer', opacity: 0.85 }}>
+                  <summary style={{ fontWeight: 600, color: '#94a3b8' }}>Debug & Execution Trace</summary>
+
+                  <div className="meta-grid mt-12" style={{ padding: '12px', background: '#0f172a', borderRadius: '6px' }}>
+                    {knowData.trace_id && (
+                      <div className="meta-row">
+                        <span className="source-tag">Trace ID</span>
+                        <code style={{ color: '#38bdf8' }}>{knowData.trace_id}</code>
+                      </div>
+                    )}
+
+                    <div className="meta-row">
+                      <span className="source-tag">Execution Time</span>
+                      <span>{knowData.execution_time_ms} ms</span>
                     </div>
-                  ))}
-                </div>
+
+                  </div>
+
+                </details>
+
               </div>
             )}
           </div>
         )}
+
 
         {activeTab === 'agent' && (
           <div className="card fade-in">

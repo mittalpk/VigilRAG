@@ -125,10 +125,10 @@ class GitHubIngestionConnector:
         return chunks
 
     def generate_dummy_embedding(self, text: str) -> List[float]:
-        """Generates a deterministic 768-dim float vector for embeddings (mockable in production/tests)."""
-        seed = int(hashlib.md5(text.encode("utf-8")).hexdigest()[:8], 16)
-        # Produce a normalized 768-dim float vector
-        return [(float((seed + i * 31) % 100) / 100.0) for i in range(768)]
+        """Generates 768-dim embedding vector via unified EmbeddingProvider."""
+        from backend.app.services.ingestion_utils import generate_embedding_vector
+        return generate_embedding_vector(text)
+
 
     async def fetch_repository_files(
         self,

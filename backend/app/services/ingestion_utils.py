@@ -53,7 +53,11 @@ def compute_checksum(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+from backend.app.services.embedding_provider import get_embedding_provider
+
+
 def generate_embedding_vector(text: str, dimension: int = 768) -> List[float]:
-    """Generates a deterministic 768-dim float vector for embeddings."""
-    seed = int(hashlib.md5(text.encode("utf-8")).hexdigest()[:8], 16)
-    return [(float((seed + i * 31) % 100) / 100.0) for i in range(dimension)]
+    """Generates 768-dim float vector using configured EmbeddingProvider."""
+    provider = get_embedding_provider()
+    return provider.embed_text(text)
+

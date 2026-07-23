@@ -42,11 +42,33 @@ export interface SourceMetadata {
   url: string;
 }
 
+export interface EvidenceItem {
+  chunk_id: string;
+  content: string;
+  source_url: string;
+  relevance_score: number;
+  source_id: string;
+  parent_doc_id?: string;
+  references?: string[];
+  permissions_ref?: string;
+}
+
+
+export interface HybridRetrievalResponse {
+  evidence: EvidenceItem[];
+  trace_id: string;
+  execution_time_ms: number;
+  query: string;
+  total_retrieved: number;
+}
+
 export interface KnowledgeResponse {
   answer_synthesis: string;
   facts: UnifiedFact[];
   metadata: SourceMetadata[];
   execution_time_ms: number;
+  evidence?: EvidenceItem[];
+  trace_id?: string;
 }
 
 export const apiClient = {
@@ -67,10 +89,10 @@ export const apiClient = {
   checkHealth: () =>
     request<{ status: string; service: string }>(`${BACKEND_URL}/health`),
 
-  queryKnowledge: (query: string, target_systems: string[] = ["confluence", "code_repos", "databases"]) =>
-    request<KnowledgeResponse>(
+  queryKnowledge: (query: string, target_systems: string[] = ["confluence", "code_repos", "databases"], top_k: number = 5) =>
+    request<HybridRetrievalResponse & KnowledgeResponse>(
       `${BACKEND_URL}/api/v1/knowledge/query`,
-      { method: 'POST', body: JSON.stringify({ query, target_systems }) }
+      { method: 'POST', body: JSON.stringify({ query, target_systems, top_k }) }
     ),
 
   runAgentTask: (task: string, max_iterations = 10) =>
@@ -79,3 +101,4 @@ export const apiClient = {
       { method: 'POST', body: JSON.stringify({ task, max_iterations }) }
     ),
 }
+

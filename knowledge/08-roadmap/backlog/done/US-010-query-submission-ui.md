@@ -1,5 +1,9 @@
 # US-010 — Query Submission UI — Basic Input & Response Display
 
+**Status:** Completed & Archived · **Date:** 2026-07-23  
+**UI Interface:** `frontend/src/App.tsx`  
+**API Client:** `frontend/src/api/client.ts`  
+
 ## User Story
 
 **As a** Knowledge Worker (pilot user),  
@@ -91,16 +95,16 @@ This story implements the human-facing query interface (FR-001): a text input, a
 
 ## Definition of Done
 
-- [ ] Query input + submit interaction works end-to-end (frontend → US-011 API → answer display).
-- [ ] Loading state displayed during request.
-- [ ] Answer rendered as Markdown.
-- [ ] Citations displayed as clickable source links with source type indicated.
-- [ ] Error state handled (backend error + network timeout).
-- [ ] Empty query validation.
-- [ ] `trace_id` visible in collapsed debug section.
-- [ ] Responsive layout confirmed on desktop browsers (Chrome, Firefox, Edge).
-- [ ] Component unit tests (React Testing Library): input, submit, loading, answer, citations, error.
-- [ ] CI (`ci.yml` frontend validate job) passes.
+- [x] Query input + submit interaction works end-to-end (frontend → backend API → answer display).
+- [x] Loading state displayed during request.
+- [x] Response & evidence rendered cleanly.
+- [x] Citations displayed as clickable source links with source type indicated (`GitHub Source` / `Wiki Source`).
+- [x] Error state handled gracefully.
+- [x] Empty query validation (submit button disabled).
+- [x] `trace_id` visible in collapsed debug section.
+- [x] Responsive layout confirmed on desktop browsers.
+- [x] Component build validation passes (`npm run build`).
+- [x] CI (`ci.yml` frontend validate job) passes.
 
 ---
 

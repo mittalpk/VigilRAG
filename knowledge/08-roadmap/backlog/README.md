@@ -21,10 +21,10 @@ Each story follows a consistent 16-section template:
 
 | ID | File | Title | Priority | Effort |
 |---|---|---|---|---|
-| US-001 | [US-001-pilot-bu-identification.md](US-001-pilot-bu-identification.md) | Pilot Business Unit Identification & Source-System Access Confirmation | Completed | M |
-| US-002 | [US-002-time-motion-survey.md](US-002-time-motion-survey.md) | Time-Motion Survey & Knowledge Fragmentation Baseline | Completed | M |
-| US-003 | [US-003-concierge-prototype-validation.md](US-003-concierge-prototype-validation.md) | Concierge Prototype Validation Run | Completed | M |
-| US-004 | [US-004-security-architecture-design-spike.md](US-004-security-architecture-design-spike.md) | Security Architecture Design Spike — Permission Enforcement | Completed | M |
+| US-001 | [US-001-pilot-bu-identification.md](done/US-001-pilot-bu-identification.md) | Pilot Business Unit Identification & Source-System Access Confirmation | Completed | M |
+| US-002 | [US-002-time-motion-survey.md](done/US-002-time-motion-survey.md) | Time-Motion Survey & Knowledge Fragmentation Baseline | Completed | M |
+| US-003 | [US-003-concierge-prototype-validation.md](done/US-003-concierge-prototype-validation.md) | Concierge Prototype Validation Run | Completed | M |
+| US-004 | [US-004-security-architecture-design-spike.md](done/US-004-security-architecture-design-spike.md) | Security Architecture Design Spike — Permission Enforcement | Completed | M |
 
 ---
 
@@ -34,8 +34,8 @@ Each story follows a consistent 16-section template:
 
 | ID | File | Title | Priority | Effort |
 |---|---|---|---|---|
-| US-005 | [US-005-postgres-provisioning.md](US-005-postgres-provisioning.md) | Supabase/Postgres Project Provisioning & Database Migration | Completed | S |
-| US-006 | [US-006-github-connector-embedding-ingestion.md](US-006-github-connector-embedding-ingestion.md) | GitHub Source Connector — Embedding Ingestion Pipeline | Completed | L |
+| US-005 | [US-005-postgres-provisioning.md](done/US-005-postgres-provisioning.md) | Supabase/Postgres Project Provisioning & Database Migration | Completed | S |
+| US-006 | [US-006-github-connector-embedding-ingestion.md](done/US-006-github-connector-embedding-ingestion.md) | GitHub Source Connector — Embedding Ingestion Pipeline | Completed | L |
 | US-007 | [US-007-wiki-connector-embedding-ingestion.md](US-007-wiki-connector-embedding-ingestion.md) | Wiki Source Connector — Embedding Ingestion Pipeline | High | M |
 | US-008 | [US-008-hybrid-retrieval-endpoint.md](US-008-hybrid-retrieval-endpoint.md) | Hybrid Semantic + Keyword Retrieval Endpoint | High | L |
 | US-009 | [US-009-retrieval-quality-golden-dataset.md](US-009-retrieval-quality-golden-dataset.md) | Retrieval Quality — Golden Dataset & Done-Check | High | M |

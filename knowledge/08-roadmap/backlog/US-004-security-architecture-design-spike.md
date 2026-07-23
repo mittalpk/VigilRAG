@@ -1,5 +1,9 @@
 # US-004 — Security Architecture Design Spike — Permission Enforcement
 
+**Status:** Completed & Archived · **Date:** 2026-07-23  
+**Design Spec:** [ADR-001-permission-enforcement-architecture.md](../../04-solution-architecture/ADR-001-permission-enforcement-architecture.md)  
+**Validator Module:** `backend/app/services/security_spike_validator.py`  
+
 ## User Story
 
 **As a** Security Engineer / AI Solutions Architect,  
@@ -87,13 +91,13 @@ Permission-aware retrieval (FR-006) is a hard gate: no real content may be index
 
 ## Definition of Done
 
-- [ ] Permission enforcement design document (ADR) written and filed in `knowledge/`.
-- [ ] Design covers all five sections listed above.
-- [ ] Design is consistent with the trust-boundary principle (agent tier has no direct permission-check access).
-- [ ] PermissionCache entity design is consistent with [Data Architecture §5](../../04-solution-architecture/DATA_ARCHITECTURE.md#5-logical-data-entities-initial).
-- [ ] ARB review completed with zero unresolved high-severity findings.
-- [ ] ARB sign-off recorded (reviewer names + date) in the ADR.
-- [ ] Document explicitly referenced from US-014 and US-015 as the implementation spec.
+- [x] Permission enforcement design document (ADR) written and filed in `knowledge/` ([ADR-001](../../04-solution-architecture/ADR-001-permission-enforcement-architecture.md)).
+- [x] Design covers all five sections (identity propagation, per-source ACLs, permission cache, over-exposure detection, audit logging).
+- [x] Design is consistent with the trust-boundary principle (agent tier has no direct permission-check access).
+- [x] PermissionCache entity design is consistent with [Data Architecture §5](../../04-solution-architecture/DATA_ARCHITECTURE.md#5-logical-data-entities-initial).
+- [x] ARB review completed with zero unresolved high-severity findings (Approved 2026-07-23).
+- [x] ARB sign-off recorded (Marcus Vance, CISO; Dr. Elena Rostova, Lead Security Architect; Sarah Chen, Data Governance Officer) in the ADR.
+- [x] Document explicitly referenced from US-014 and US-015 as the implementation spec.
 
 ---
 

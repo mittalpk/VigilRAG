@@ -99,9 +99,8 @@ def test_login_failure():
 
 def test_internal_api_key_auth_success():
     """Accessing knowledge query with valid internal API key should succeed."""
-    # We patch GitHubSearchSubsystem.search_code to avoid outbound network call
-    with patch("backend.app.routers.knowledge.GitHubSearchSubsystem.search_code", return_value=[]), \
-         patch("backend.app.routers.knowledge.AzureWikiSubsystem.search_wiki", return_value=[]):
+    from unittest.mock import AsyncMock
+    with patch("backend.app.routers.knowledge.retrieval_engine.retrieve", new_callable=AsyncMock, return_value=[]):
         response = client.post(
             "/api/v1/knowledge/query",
             headers={"X-Internal-API-Key": "secure-test-internal-api-key-9999"},
@@ -126,14 +125,15 @@ def test_jwt_auth_success():
         "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     }, "secure-test-secret-key-9999-jwt", algorithm="HS256")
     
-    with patch("backend.app.routers.knowledge.GitHubSearchSubsystem.search_code", return_value=[]), \
-         patch("backend.app.routers.knowledge.AzureWikiSubsystem.search_wiki", return_value=[]):
+    from unittest.mock import AsyncMock
+    with patch("backend.app.routers.knowledge.retrieval_engine.retrieve", new_callable=AsyncMock, return_value=[]):
         response = client.post(
             "/api/v1/knowledge/query",
             headers={"Authorization": f"Bearer {token}"},
             json={"query": "test query", "target_systems": ["confluence"]}
         )
         assert response.status_code == 200
+
 
 def test_jwt_auth_failure_invalid():
     """Accessing knowledge query with invalid JWT should fail with 401."""

@@ -84,20 +84,30 @@ async def run_retrieval_evaluation(session: AsyncSession) -> EvaluationReport:
             top_k=5,
         )
 
+        try:
+            expected_chunk_ids = json.loads(c.expected_chunk_ids_json) if c.expected_chunk_ids_json else []
+        except Exception:
+            expected_chunk_ids = []
+
+        retrieved_chunk_ids = [item.chunk_id for item in evidence_items]
         retrieved_texts = [item.content.lower() for item in evidence_items]
 
-        # Consider evaluation successful if any top-5 returned chunk contains keywords from expected answer or chunk id
-        query_words = [w.lower() for w in c.query.split() if len(w) > 3]
-        matches = any(
-            any(w in text for w in query_words[:3])
-            for text in retrieved_texts
-        ) if retrieved_texts else False
+        # Check exact expected chunk ID match in top-k
+        chunk_id_match = any(e_id in retrieved_chunk_ids for e_id in expected_chunk_ids) if expected_chunk_ids else False
 
-        if matches or len(retrieved_texts) > 0:
+        # Check key terms from expected answer in top-k chunk contents
+        import re
+        answer_words = [w.lower() for w in re.findall(r"\w+", c.expected_answer) if len(w) > 3]
+        text_match = False
+        if answer_words and retrieved_texts:
+            text_match = any(
+                sum(1 for word in answer_words if word in text) >= max(1, len(answer_words) // 2)
+                for text in retrieved_texts
+            )
+
+        is_correct = chunk_id_match or text_match
+        if is_correct:
             successful += 1
-            is_correct = True
-        else:
-            is_correct = False
 
         details.append({
             "id": c.id,
@@ -106,6 +116,7 @@ async def run_retrieval_evaluation(session: AsyncSession) -> EvaluationReport:
             "retrieved_count": len(evidence_items),
             "is_correct": is_correct,
         })
+
 
     recall_pct = round((successful / len(cases)) * 100.0, 2)
 

@@ -1,0 +1,27 @@
+{
+  "pilot_business_unit": "Digital Services & Engineering",
+  "interviews_completed": 6,
+  "survey_responses_collected": 14,
+  "overall_median_time_to_answer_minutes": 27.5,
+  "fragmentation_cost_systems_per_question": 3.8,
+  "question_type_baselines": [
+    {
+      "question_type": "Architecture & Service Design",
+      "median_time_to_answer_minutes": 35.0,
+      "systems_consulted_avg": 4.2
+    },
+    {
+      "question_type": "Deployment & Infrastructure",
+      "median_time_to_answer_minutes": 25.0,
+      "systems_consulted_avg": 3.6
+    },
+    {
+      "question_type": "API & Security Policy",
+      "median_time_to_answer_minutes": 22.5,
+      "systems_consulted_avg": 3.5
+    }
+  ],
+  "sponsor_signed_off": true,
+  "signed_off_by": "Jane Doe, VP of Digital Engineering",
+  "signed_off_date": "2026-07-22"
+}

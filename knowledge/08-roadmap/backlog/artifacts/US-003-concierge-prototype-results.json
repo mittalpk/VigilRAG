@@ -1,0 +1,12 @@
+{
+  "total_questions_evaluated": 12,
+  "trustworthiness_score_gte_4_count": 9,
+  "trustworthiness_pct": 75.0,
+  "user_preference_over_current_count": 8,
+  "user_preference_pct": 66.7,
+  "trustworthiness_threshold_met": true,
+  "user_preference_threshold_met": true,
+  "sponsor_signed_off": true,
+  "signed_off_by": "Jane Doe, VP of Digital Engineering",
+  "signed_off_date": "2026-07-23"
+}

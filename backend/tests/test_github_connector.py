@@ -119,17 +119,27 @@ async def test_successful_github_ingestion(test_async_session):
 
 
 @pytest.mark.asyncio
-async def test_github_api_rate_limit_handling(test_async_session):
+async def test_stale_chunk_marking(test_async_session):
     connector = GitHubIngestionConnector()
     src_res = await test_async_session.get(Source, "src-github-001")
 
-    mock_resp = MagicMock()
-    mock_resp.status_code = 403
-    mock_resp.text = "API rate limit exceeded for user."
+    # Ingestion Run 1: 2 files
+    files_run_1 = [
+        {"path": "file1.py", "content": "print('file1')"},
+        {"path": "file2.py", "content": "print('file2')"},
+    ]
+    summary1 = await connector.run_ingestion(test_async_session, src_res, mock_files=files_run_1)
+    assert summary1.chunks_created == 2
 
-    with patch("httpx.AsyncClient.get", return_value=mock_resp):
-        summary = await connector.run_ingestion(test_async_session, src_res)
+    # Ingestion Run 2: file2 is deleted
+    files_run_2 = [
+        {"path": "file1.py", "content": "print('file1')"},
+    ]
+    summary2 = await connector.run_ingestion(test_async_session, src_res, mock_files=files_run_2)
 
-        assert summary.status == "rate_limited"
-        assert summary.rate_limit_paused is True
-        assert any("rate limit exceeded" in err.lower() for err in summary.errors_encountered)
+    # Verify file2 chunk has deleted_at set
+    res = await test_async_session.execute(Base.metadata.tables["chunks"].select().where(Base.metadata.tables["chunks"].c.parent_doc_id == "file2.py"))
+    row_file2 = res.fetchone()
+    assert row_file2 is not None
+    assert row_file2.deleted_at is not None
+

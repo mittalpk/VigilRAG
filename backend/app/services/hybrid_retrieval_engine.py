@@ -74,10 +74,11 @@ class HybridRetrievalEngine:
 
         # 3. Fetch candidate Chunks from DB with SQL candidate bounds (top_k * 10)
         try:
-            from sqlalchemy import or_
+            from sqlalchemy import and_, or_
+            active_filter = Chunk.deleted_at.is_(None)
             if query_terms:
                 conditions = [Chunk.content.ilike(f"%{term}%") for term in query_terms[:5]]
-                stmt = select(Chunk).where(or_(*conditions)).limit(top_k * 10)
+                stmt = select(Chunk).where(and_(active_filter, or_(*conditions))).limit(top_k * 10)
                 res = await session.execute(stmt)
                 chunks: List[Chunk] = list(res.scalars().all())
             else:
@@ -85,12 +86,13 @@ class HybridRetrievalEngine:
 
             # Fallback if keyword filter returns insufficient candidates
             if len(chunks) < top_k * 2:
-                stmt_fallback = select(Chunk).limit(top_k * 10)
+                stmt_fallback = select(Chunk).where(active_filter).limit(top_k * 10)
                 res_fb = await session.execute(stmt_fallback)
                 chunks = list(res_fb.scalars().all())
         except Exception as exc:
             logger.warning(f"DB query error (uninitialized DB or table missing): {exc}")
             return []
+
 
         if not chunks:
             return []

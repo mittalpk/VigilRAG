@@ -227,6 +227,7 @@ class GitHubIngestionConnector:
 
         summary.files_fetched = len(files)
         permissions_ref = f"github:{source.name}:read"
+        active_chunk_ids: set[str] = set()
 
         # 2. Process files
         for f in files:
@@ -247,6 +248,7 @@ class GitHubIngestionConnector:
             for idx, chunk_text in enumerate(content_chunks):
                 checksum = hashlib.sha256(chunk_text.encode("utf-8")).hexdigest()
                 chunk_id = f"chk-{doc_id}-{idx}"
+                active_chunk_ids.add(chunk_id)
 
                 # Check if chunk exists in DB with unchanged checksum
                 existing_res = await session.execute(
@@ -255,6 +257,7 @@ class GitHubIngestionConnector:
                 existing_chunk = existing_res.scalar_one_or_none()
 
                 if existing_chunk and existing_chunk.checksum == checksum:
+                    existing_chunk.deleted_at = None
                     summary.chunks_skipped_unchanged += 1
                     continue
 
@@ -267,6 +270,7 @@ class GitHubIngestionConnector:
                     existing_chunk.references_json = json.dumps(references)
                     existing_chunk.embedding_vector_str = json.dumps(vector_embedding)
                     existing_chunk.permissions_ref = permissions_ref
+                    existing_chunk.deleted_at = None
                     existing_chunk.last_indexed_at = datetime.now(timezone.utc)
                     summary.chunks_updated += 1
                 else:
@@ -285,8 +289,17 @@ class GitHubIngestionConnector:
                     session.add(new_chunk)
                     summary.chunks_created += 1
 
-        # 3. Update Source.last_indexed_at
+        # 3. Mark deleted/stale chunks
+        all_source_chunks_res = await session.execute(
+            select(Chunk).where(Chunk.source_id == source.id, Chunk.deleted_at.is_(None))
+        )
+        for chk in all_source_chunks_res.scalars().all():
+            if chk.id not in active_chunk_ids:
+                chk.deleted_at = datetime.now(timezone.utc)
+
+        # 4. Update Source.updated_at
         source.updated_at = datetime.now(timezone.utc)
         await session.commit()
+
 
         return summary

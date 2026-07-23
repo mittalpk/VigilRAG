@@ -1,0 +1,29 @@
+{
+  "business_unit_name": "Digital Services & Engineering",
+  "sponsor_name": "Jane Doe",
+  "sponsor_email": "jane.doe@example.com",
+  "sponsor_signed_off": true,
+  "signed_off_date": "2026-07-22",
+  "target_sources": [
+    {
+      "source_id": "src-gh-pilot",
+      "source_type": "github_repo",
+      "name": "core-backend-service",
+      "endpoint_url": "https://api.github.com/repos/org/core-backend-service",
+      "secret_reference": "kv-vigilrag-pilot-gh-pat",
+      "owner_email": "repo.owner@example.com",
+      "sensitivity_level": "internal-sensitive",
+      "sensitivity_signed_off": true
+    },
+    {
+      "source_id": "src-wiki-pilot",
+      "source_type": "confluence_wiki",
+      "name": "engineering-knowledge-base",
+      "endpoint_url": "https://wiki.example.com/rest/api/content",
+      "secret_reference": "kv-vigilrag-pilot-wiki-token",
+      "owner_email": "wiki.owner@example.com",
+      "sensitivity_level": "internal-general",
+      "sensitivity_signed_off": true
+    }
+  ]
+}

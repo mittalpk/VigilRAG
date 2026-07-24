@@ -15,6 +15,7 @@ from sqlalchemy import (
     Column,
     DateTime,
     Enum as SQLEnum,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -22,6 +23,7 @@ from sqlalchemy import (
     Text,
     func,
 )
+
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, relationship
 
@@ -141,6 +143,49 @@ class EvaluationCase(Base):
     source_type = Column(String(50), nullable=False)  # github_repo, confluence_wiki, cross_source
     tags_json = Column(Text, nullable=False, default="[]")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class QueryRecord(Base):
+    """Query entity backing US-013, US-018, and Data Architecture §5."""
+
+    __tablename__ = "queries"
+
+    id = Column(String(100), primary_key=True)
+    requester_identity = Column(String(255), nullable=False, index=True)
+    query_text = Column(Text, nullable=False)
+    trace_id = Column(String(100), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class EvidenceItemRecord(Base):
+    """EvidenceItem entity backing US-013, US-018, and Data Architecture §5."""
+
+    __tablename__ = "evidence_items"
+
+    id = Column(String(100), primary_key=True)
+    query_id = Column(String(100), ForeignKey("queries.id", ondelete="CASCADE"), nullable=False, index=True)
+    chunk_id = Column(String(100), nullable=False, index=True)
+    source_id = Column(String(100), nullable=False)
+    source_url = Column(Text, nullable=True)
+    relevance_score = Column(Float, nullable=False, default=0.0)
+    rerank_score = Column(Float, nullable=True)
+    used_in_answer = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class AnswerRecord(Base):
+    """Answer entity backing US-013, US-018, and Data Architecture §5."""
+
+    __tablename__ = "answers"
+
+    id = Column(String(100), primary_key=True)
+    query_id = Column(String(100), ForeignKey("queries.id", ondelete="CASCADE"), nullable=False, index=True)
+    answer_text = Column(Text, nullable=False)
+    groundedness_score = Column(Float, nullable=True)
+    guardrail_flags_json = Column(Text, nullable=False, default="[]")
+    trace_id = Column(String(100), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
 
 
 async def init_db():

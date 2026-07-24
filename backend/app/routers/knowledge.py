@@ -44,6 +44,24 @@ async def query_knowledge(
             top_k=body.top_k,
         )
 
+        # Persist Query and Evidence audit records for provenance tracking (US-013)
+        try:
+            ev_dicts = [ev.model_dump() for ev in evidence]
+            query_id = f"qry-{uuid.uuid4().hex[:12]}"
+            from backend.app.services.groundedness_service import persist_query_evidence_answer
+            await persist_query_evidence_answer(
+                session=session,
+                query_id=query_id,
+                requester_identity=requester_identity,
+                query_text=body.query,
+                trace_id=trace_id,
+                evidence_items=ev_dicts,
+                answer_text=f"Retrieved {len(evidence)} evidence items.",
+            )
+        except Exception as exc:
+            logger.warning(f"Audit persistence warning: {exc}")
+
+
 
     exec_time_ms = (datetime.datetime.now() - start_time).microseconds // 1000
 

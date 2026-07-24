@@ -54,6 +54,9 @@ Per [Roadmap §5](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) and [
 
 - [x] Implement citation rendering tying each answer claim to a retrieved chunk (FR-003). Completed 2026-07-24 (US-012, CitationList React component, inline superscript markers, collapsible source cards, guardrail warning banner, and unit tests).
 
+- [x] Persist EvidenceItem records and compute groundedness score for every query (FR-004, FR-008). Completed 2026-07-24 (US-013, QueryRecord, EvidenceItemRecord, AnswerRecord DB models, Alembic migration 0003_evidence_item_groundedness, groundedness_service.py, and unit tests).
+
+
 - [ ] Replace the single hardcoded admin auth path with the RBAC foundation (NFR-002 slice for PI-1).
 
 ### 4.4 RAG evaluation harness (FEAT-16, NFR-011)

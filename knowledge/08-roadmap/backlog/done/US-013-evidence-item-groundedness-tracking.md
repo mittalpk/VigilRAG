@@ -1,6 +1,9 @@
 # US-013 — EvidenceItem Entity & Groundedness Score Tracking
 
+**Status:** Completed & Archived · 2026-07-24
+
 ## User Story
+
 
 **As an** AI Engineer / Compliance Officer,  
 **I want to** persist `EvidenceItem` records for every query — linking each retrieved chunk to the query it was used in, with its relevance score and whether it was included in the synthesised answer — and compute a per-answer groundedness score,  
@@ -86,15 +89,16 @@
 
 ## Definition of Done
 
-- [ ] Alembic migration adds `queries`, `evidence_items`, `answers` tables with correct FK relationships.
-- [ ] `Query`, `EvidenceItem[]`, and `Answer` records persisted for each query request.
-- [ ] `EvidenceItem.used_in_answer` heuristic implemented.
-- [ ] `Answer.groundedness_score` computed and stored.
-- [ ] `Answer.guardrail_flags` stored (empty list for PI-1 with stub guardrails).
-- [ ] Persistence failures logged but do not propagate to the API response.
-- [ ] `trace_id` links all three record types.
-- [ ] Unit tests: assert correct record creation, `used_in_answer` flag logic, groundedness calculation.
-- [ ] CI passes.
+- [x] Alembic migration adds `queries`, `evidence_items`, `answers` tables with correct FK relationships (`backend/alembic/versions/0003_evidence_item_groundedness.py`).
+- [x] `Query`, `EvidenceItem[]`, and `Answer` records persisted for each query request (`backend/app/services/groundedness_service.py`).
+- [x] `EvidenceItem.used_in_answer` heuristic implemented (`calculate_groundedness_and_used_chunks`).
+- [x] `Answer.groundedness_score` computed and stored.
+- [x] `Answer.guardrail_flags` stored (empty list for PI-1 with stub guardrails).
+- [x] Persistence failures logged but do not propagate to the API response.
+- [x] `trace_id` links all three record types.
+- [x] Unit tests: assert correct record creation, `used_in_answer` flag logic, groundedness calculation (`backend/tests/test_groundedness_service.py`).
+- [x] CI passes (`python3 -m pytest backend/tests -v`, `python3 -m pytest agent/tests -v`, `cd frontend && npm run build`).
+
 
 ---
 

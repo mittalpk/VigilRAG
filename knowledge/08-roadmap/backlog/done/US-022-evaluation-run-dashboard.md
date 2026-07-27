@@ -1,5 +1,7 @@
 # US-022 — EvaluationRun Record Persistence & Quality Trend Dashboard
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As an** AI Engineer / Platform Owner,  
@@ -82,12 +84,12 @@
 
 ## Definition of Done
 
-- [ ] `GET /api/v1/admin/evaluation-runs` and `/latest` endpoints implemented and admin-only.
-- [ ] `EvaluationDashboard` frontend page implemented with line chart and summary table.
-- [ ] Pass/fail threshold badge confirmed.
-- [ ] Empty state and single-run state handled gracefully.
-- [ ] Unit tests: API endpoints (pagination, filtering, empty result, latest).
-- [ ] CI passes.
+- [x] `GET /api/v1/admin/evaluation-runs` and `/latest` endpoints implemented and admin-only.
+- [x] `EvaluationDashboard` frontend page implemented with line chart and summary table.
+- [x] Pass/fail threshold badge confirmed.
+- [x] Empty state and single-run state handled gracefully.
+- [x] Unit tests: API endpoints (pagination, filtering, empty result, latest).
+- [x] CI passes.
 
 ---
 

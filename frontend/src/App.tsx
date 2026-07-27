@@ -80,11 +80,13 @@ const AgentAnimation = () => (
   </svg>
 );
 
+import EvaluationDashboard from './EvaluationDashboard'
+
 export default function App() {
   useEffect(() => {
     console.log('🚀 VigilRAG Production UI loaded correctly. Version: 1.0.1 (Final)');
   }, [])
-  const [activeTab, setActiveTab] = useState<'knowledge' | 'agent' | 'documentation'>('knowledge')
+  const [activeTab, setActiveTab] = useState<'knowledge' | 'agent' | 'evaluation' | 'documentation'>('knowledge')
 
   // Knowledge State
   const [query, setQuery] = useState('')
@@ -240,6 +242,13 @@ export default function App() {
             onClick={() => setActiveTab('agent')}
           >
             Multi-Agent Orchestrator
+          </button>
+          <button
+            id="tab-evaluation"
+            className={`tab ${activeTab === 'evaluation' ? 'active' : ''}`}
+            onClick={() => setActiveTab('evaluation')}
+          >
+            Evaluation Dashboard
           </button>
           <button
             id="tab-documentation"
@@ -469,6 +478,12 @@ export default function App() {
           <div className="card error-card fade-in mt-16">
             <span className="badge badge-error">Error</span>
             <p style={{ marginTop: 8, color: '#f87171', fontSize: '0.9rem' }}>{error}</p>
+          </div>
+        )}
+
+        {activeTab === 'evaluation' && (
+          <div className="tab-content fade-in">
+            <EvaluationDashboard />
           </div>
         )}
 

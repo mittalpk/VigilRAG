@@ -36,3 +36,24 @@ class HybridRetrievalResponse(BaseModel):
     execution_time_ms: int
     query: str
     total_retrieved: int
+
+
+class EvaluationRunResponse(BaseModel):
+    id: str
+    pipeline_version: str
+    dataset_version: str
+    total_cases: int
+    faithfulness: float
+    context_precision: float
+    context_recall: float
+    answer_relevancy: float
+    passed_threshold: bool
+    run_at: Any
+    details: Optional[List[Dict[str, Any]]] = None
+
+
+class EvaluationRunListResponse(BaseModel):
+    items: List[EvaluationRunResponse]
+    total: int
+    page: int
+    size: int

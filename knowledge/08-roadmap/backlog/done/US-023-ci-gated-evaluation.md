@@ -1,5 +1,7 @@
 # US-023 — CI-Gated Evaluation — Block Merge on RAGAS Regression
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As an** AI Engineer / Tech Lead,  
@@ -101,14 +103,14 @@ This story wires the RAGAS evaluation runner (US-021) into the CI pipeline (`ci.
 
 ## Definition of Done
 
-- [ ] `evaluation-gate` CI job added to `ci.yml`.
-- [ ] Job path-filtered to retrieval/agent/evaluation-script changes.
-- [ ] Job seeds the fast-CI golden dataset subset at start.
-- [ ] Job fails with a human-readable regression report when a threshold is breached.
-- [ ] Done-check: deliberately reverting to keyword-only retrieval on a test branch causes the CI gate to fail.
-- [ ] `EvaluationRun` record persisted for CI runs (with `pipeline_version=git-sha`).
-- [ ] CI total runtime (all jobs) stays within a reasonable budget.
-- [ ] Execution Runbook §4.4 fourth bullet marked `[x]`.
+- [x] `evaluation-gate` CI job added to `ci.yml`.
+- [x] Job path-filtered to retrieval/agent/evaluation-script changes.
+- [x] Job seeds the fast-CI golden dataset subset at start.
+- [x] Job fails with a human-readable regression report when a threshold is breached.
+- [x] Done-check: deliberately reverting to keyword-only retrieval on a test branch causes the CI gate to fail.
+- [x] `EvaluationRun` record persisted for CI runs (with `pipeline_version=git-sha`).
+- [x] CI total runtime (all jobs) stays within a reasonable budget.
+- [x] Execution Runbook §4.4 fourth bullet marked `[x]`.
 
 ---
 

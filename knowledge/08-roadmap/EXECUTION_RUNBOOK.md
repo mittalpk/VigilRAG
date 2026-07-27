@@ -66,7 +66,7 @@ Per [Roadmap §5](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) and [
 - [x] Install and configure **RAGAS** against the retrieval/synthesis pipeline; if a metric RAGAS doesn't cover is needed, add **DeepEval** as a supplement rather than replacing RAGAS wholesale. Completed 2026-07-27 (US-021).
 - [x] Build the initial golden dataset (`EvaluationCase` entities per [Data Architecture §5](../04-solution-architecture/DATA_ARCHITECTURE.md#5-logical-data-entities-initial)) — start small (20–50 representative query/answer pairs across code + wiki), grow it via the feedback loop (4.5 below) rather than trying to make it comprehensive on day one. Completed 2026-07-27 (US-021).
 - [x] Wire evaluation runs to persist `EvaluationRun` records (pipeline version, dataset version, faithfulness/context-precision/context-recall scores) — this record is what Model/System Cards (Phase 2, FEAT-19) will later cite, so get the schema right now rather than retrofitting it. Completed 2026-07-27 (US-021 & US-022, admin API `GET /api/v1/admin/evaluation-runs` & UI dashboard `EvaluationDashboard.tsx`).
-- [ ] Add the evaluation run as a required CI check (closes the "build/test gate only" caveat noted in 4.1 — `ci.yml` currently validates builds and unit tests, not AI quality).
+- [x] Add the evaluation run as a required CI check (closes the "build/test gate only" caveat noted in 4.1 — `ci.yml` currently validates builds and unit tests, not AI quality). Completed 2026-07-27 (US-023, `evaluation-gate` job in `ci.yml`).
 - [ ] Done-check: a deliberately-introduced retrieval regression (e.g., reverting to keyword-only matching on a test branch) is caught by the CI gate before merge.
 
 ### 4.5 Guardrails (FEAT-17, FR-012)

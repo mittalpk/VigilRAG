@@ -21,7 +21,7 @@ from backend.app.services.retrieval_evaluator import seed_golden_dataset
 from backend.app.services.wiki_connector import WikiIngestionConnector
 
 
-async def main():
+async def main(mode: str = "full", fail_on_regression: bool = False):
     print("=== VigilRAG US-021 RAGAS Evaluation Setup & Baseline Run ===")
 
     # 1. Setup in-memory DB engine
@@ -134,11 +134,26 @@ async def main():
 
         if report.passed_threshold:
             print("✓ SUCCESS: RAGAS evaluation passed quality threshold.")
+            return 0
         else:
-            print("✖ WARNING: RAGAS evaluation failed quality threshold.")
+            print(f"✖ BLOCKED: RAGAS evaluation failed quality threshold (faithfulness: {report.faithfulness} below threshold {threshold_faithfulness}).")
+            if fail_on_regression:
+                return 1
+            return 0
 
     await engine.dispose()
 
 
+def parse_args():
+    import argparse
+    parser = argparse.ArgumentParser(description="Run RAGAS evaluation harness.")
+    parser.add_argument("--mode", choices=["full", "ci"], default="full", help="Evaluation mode")
+    parser.add_argument("--fail-on-regression", action="store_true", help="Exit with code 1 if threshold is breached")
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    args = parse_args()
+    exit_code = asyncio.run(main(mode=args.mode, fail_on_regression=args.fail_on_regression))
+    if exit_code != 0:
+        sys.exit(exit_code)

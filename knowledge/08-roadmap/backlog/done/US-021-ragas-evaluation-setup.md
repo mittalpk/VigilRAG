@@ -1,5 +1,7 @@
 # US-021 — RAGAS Evaluation Setup & Golden Dataset Bootstrap
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As an** AI Engineer,  
@@ -90,15 +92,15 @@ RAGAS measures three key RAG quality metrics: **faithfulness** (is the answer fa
 
 ## Definition of Done
 
-- [ ] `ragas` added to `backend/requirements.txt`.
-- [ ] `EvaluationRun` table created via Alembic migration.
-- [ ] `scripts/run_evaluation.py` implemented and documented.
-- [ ] First baseline evaluation run executed against the golden dataset.
-- [ ] `EvaluationRun` baseline record persisted with all metric scores.
-- [ ] Baseline scores documented in `scripts/evaluation_config.yaml` (with threshold).
-- [ ] Summary report output confirmed.
-- [ ] CI passes (script importable; unit tests mock the retrieval and synthesis calls).
-- [ ] Execution Runbook §4.4 first three bullets marked `[x]`.
+- [x] `ragas` added to `backend/requirements.txt`.
+- [x] `EvaluationRun` table created via Alembic migration.
+- [x] `scripts/run_evaluation.py` implemented and documented.
+- [x] First baseline evaluation run executed against the golden dataset.
+- [x] `EvaluationRun` baseline record persisted with all metric scores.
+- [x] Baseline scores documented in `scripts/evaluation_config.yaml` (with threshold).
+- [x] Summary report output confirmed.
+- [x] CI passes (script importable; unit tests mock the retrieval and synthesis calls).
+- [x] Execution Runbook §4.4 first three bullets marked `[x]`.
 
 ---
 

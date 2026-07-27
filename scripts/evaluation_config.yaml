@@ -1,0 +1,19 @@
+dataset_version: "v1.0"
+pipeline_version: "git-head"
+metrics:
+  faithfulness:
+    target: 0.90
+    baseline: 0.92
+    threshold: 0.85
+  context_precision:
+    target: 0.85
+    baseline: 0.88
+    threshold: 0.80
+  context_recall:
+    target: 0.90
+    baseline: 0.95
+    threshold: 0.85
+  answer_relevancy:
+    target: 0.85
+    baseline: 0.90
+    threshold: 0.80

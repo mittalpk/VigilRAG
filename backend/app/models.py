@@ -223,6 +223,25 @@ class UserRole(Base):
 
 
 
+
+class EvaluationRun(Base):
+    """EvaluationRun entity backing US-021, US-022, US-023, and Data Architecture §5."""
+
+    __tablename__ = "evaluation_runs"
+
+    id = Column(String(100), primary_key=True)
+    pipeline_version = Column(String(100), nullable=False)
+    dataset_version = Column(String(50), nullable=False, default="v1.0")
+    total_cases = Column(Integer, nullable=False, default=0)
+    faithfulness = Column(Float, nullable=False, default=0.0)
+    context_precision = Column(Float, nullable=False, default=0.0)
+    context_recall = Column(Float, nullable=False, default=0.0)
+    answer_relevancy = Column(Float, nullable=False, default=0.0)
+    passed_threshold = Column(Boolean, nullable=False, default=True)
+    run_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    details_json = Column(Text, nullable=False, default="[]")
+
+
 async def init_db():
 
     """Helper to initialize database tables."""

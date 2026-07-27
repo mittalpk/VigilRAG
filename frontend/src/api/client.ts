@@ -114,5 +114,43 @@ export const apiClient = {
       `${AGENT_URL}/api/v1/agent/run`,
       { method: 'POST', body: JSON.stringify({ task, max_iterations }) }
     ),
+
+  getLatestEvaluationRun: () =>
+    request<EvaluationRunItem>(`${BACKEND_URL}/api/v1/admin/evaluation-runs/latest`),
+
+  getEvaluationRuns: (datasetVersion?: string, pipelineVersion?: string, page = 1, size = 10) => {
+    const params = new URLSearchParams({ page: String(page), size: String(size) })
+    if (datasetVersion) params.set('dataset_version', datasetVersion)
+    if (pipelineVersion) params.set('pipeline_version', pipelineVersion)
+    return request<EvaluationRunListResponse>(`${BACKEND_URL}/api/v1/admin/evaluation-runs?${params.toString()}`)
+  },
+}
+
+export interface EvaluationRunItem {
+  id: string
+  pipeline_version: string
+  dataset_version: string
+  total_cases: number
+  faithfulness: number
+  context_precision: number
+  context_recall: number
+  answer_relevancy: number
+  passed_threshold: boolean
+  run_at: string
+  details?: Array<{
+    case_id: string
+    query: string
+    faithfulness: number
+    context_precision: number
+    context_recall: number
+    answer_relevancy: number
+  }>
+}
+
+export interface EvaluationRunListResponse {
+  items: EvaluationRunItem[]
+  total: number
+  page: number
+  size: number
 }
 

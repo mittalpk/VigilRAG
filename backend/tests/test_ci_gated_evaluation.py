@@ -7,29 +7,33 @@ Tests:
 - Regression breach exit status code check (exit 1 on failure when --fail-on-regression passed).
 """
 
+import os
 import subprocess
+import sys
 import pytest
 
 
 def test_seed_evaluation_dataset_ci_mode():
+    env = {**os.environ, "PYTHONPATH": "."}
     res = subprocess.run(
-        ["python3", "scripts/seed_evaluation_dataset.py", "--mode", "ci"],
+        [sys.executable, "scripts/seed_evaluation_dataset.py", "--mode", "ci"],
         capture_output=True,
         text=True,
-        env={"PYTHONPATH": "."},
+        env=env,
     )
-    assert res.returncode == 0
+    assert res.returncode == 0, f"stdout: {res.stdout}, stderr: {res.stderr}"
     assert "Successfully seeded 10 EvaluationCase records" in res.stdout
 
 
 def test_run_evaluation_cli_pass():
+    env = {**os.environ, "PYTHONPATH": "."}
     res = subprocess.run(
-        ["python3", "scripts/run_evaluation.py", "--mode", "ci", "--fail-on-regression"],
+        [sys.executable, "scripts/run_evaluation.py", "--mode", "ci", "--fail-on-regression"],
         capture_output=True,
         text=True,
-        env={"PYTHONPATH": "."},
+        env=env,
     )
-    assert res.returncode == 0
+    assert res.returncode == 0, f"stdout: {res.stdout}, stderr: {res.stderr}"
     assert "✓ SUCCESS: RAGAS evaluation passed quality threshold" in res.stdout
 
 

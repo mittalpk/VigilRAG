@@ -41,6 +41,12 @@ jobs:
             frontend:
               - 'frontend/**'
               - '.github/workflows/ci.yml'
+            evaluation:
+              - 'backend/app/**'
+              - 'agent/app/**'
+              - 'scripts/run_evaluation.py'
+              - 'scripts/evaluation_config.yaml'
+              - '.github/workflows/ci.yml'
 
   backend-test:
     needs: filter
@@ -112,3 +118,30 @@ jobs:
       - name: Type-check and build
         working-directory: frontend
         run: npm run build
+
+  evaluation-gate:
+    needs: filter
+    if: needs.filter.outputs.evaluation == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: 'backend/requirements.txt'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install pytest pytest-asyncio
+
+      - name: Seed evaluation dataset
+        run: PYTHONPATH=. python scripts/seed_evaluation_dataset.py --mode ci
+
+      - name: Run RAGAS evaluation quality gate
+        run: PYTHONPATH=. python scripts/run_evaluation.py --mode ci --fail-on-regression

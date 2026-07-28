@@ -89,7 +89,7 @@ Each story follows a consistent 16-section template:
 |---|---|---|---|---|
 | US-021 | [US-021-ragas-evaluation-setup.md](done/US-021-ragas-evaluation-setup.md) | RAGAS Evaluation Setup & Golden Dataset Bootstrap | Completed | M |
 | US-022 | [US-022-evaluation-run-dashboard.md](done/US-022-evaluation-run-dashboard.md) | EvaluationRun Record Persistence & Quality Trend Dashboard | Completed | S |
-| US-023 | [US-023-ci-gated-evaluation.md](US-023-ci-gated-evaluation.md) | CI-Gated Evaluation — Block Merge on RAGAS Regression | High | M |
+| US-023 | [US-023-ci-gated-evaluation.md](done/US-023-ci-gated-evaluation.md) | CI-Gated Evaluation — Block Merge on RAGAS Regression | Completed | M |
 
 #### Guardrails (FEAT-17)
 

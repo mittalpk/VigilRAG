@@ -1,5 +1,7 @@
 # US-031 — Source Registration Self-Service Workflow (Admin UI)
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As a** Platform Administrator,  
@@ -91,14 +93,14 @@ This story implements FR-007: the source registration workflow. Currently, sourc
 
 ## Definition of Done
 
-- [ ] Source management API endpoints implemented and admin-only.
-- [ ] `SourceManagement` frontend page implemented with list, form, and trigger-index button.
-- [ ] Source status transitions: `pending → indexing → indexed` (or `error`).
-- [ ] Deactivation (soft-delete) implemented.
-- [ ] Duplicate source registration returns HTTP 409.
-- [ ] FR-007 acceptance check: a second Confluence space onboarded within one business day (manual test).
-- [ ] Unit tests: CRUD operations, duplicate check, trigger-index call.
-- [ ] CI passes.
+- [x] Source management API endpoints implemented and admin-only.
+- [x] `SourceManagement` frontend page implemented with list, form, and trigger-index button.
+- [x] Source status transitions: `pending → indexing → indexed` (or `error`).
+- [x] Deactivation (soft-delete) implemented.
+- [x] Duplicate source registration returns HTTP 409.
+- [x] FR-007 acceptance check: a second Confluence space onboarded within one business day (manual test).
+- [x] Unit tests: CRUD operations, duplicate check, trigger-index call.
+- [x] CI passes.
 
 ---
 

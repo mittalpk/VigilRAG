@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from .config import settings
-from .routers import admin, agent, audit, auth, feedback, health, knowledge
+from .routers import admin, agent, audit, auth, feedback, health, knowledge, sources
 from .client import http_client
 from .auth import get_current_user
 
@@ -109,4 +109,9 @@ app.include_router(
     feedback.router,
     prefix="/api/v1/feedback",
     tags=["Feedback"],
+)
+app.include_router(
+    sources.router,
+    prefix="/api/v1/admin",
+    tags=["Source Management"],
 )

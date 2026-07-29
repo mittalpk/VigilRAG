@@ -1,5 +1,5 @@
 """
-Unit and Integration Tests for Agent Query API Router (US-011 / US-024).
+Unit and Integration Tests for Agent Query API Router (US-011 / US-024 / US-025).
 Tests:
 - POST /api/v1/query success flow with citation assembly.
 - 401 Unauthorized on missing/empty requester_identity.
@@ -7,6 +7,7 @@ Tests:
 - Handling empty evidence response from backend Knowledge API.
 - 503 Service Unavailable handling on backend error or timeout.
 - Prompt Injection Defense (US-024) scanning & guardrail flags.
+- Output Validation Check (US-025) schema invalid and safety check failure handling.
 - Fail-closed handling when guardrail service is unavailable.
 """
 
@@ -20,6 +21,7 @@ os.environ["INTERNAL_API_KEY"] = "secure-test-internal-api-key-9999"
 os.environ["GEMINI_API_KEY"] = "fake-gemini-key"
 
 from agent.app.main import app
+from agent.app.guardrails import ValidationResult
 
 client = TestClient(app)
 TEST_KEY = "secure-test-internal-api-key-9999"
@@ -258,3 +260,57 @@ def test_query_endpoint_guardrail_503_fail_closed():
 
             assert response.status_code == 503
             assert "Guardrails service unavailable" in response.json()["detail"]
+
+
+# ── US-025 Output Validation Endpoint Tests ──────────────────────────────────
+
+def test_query_endpoint_output_validation_schema_invalid():
+    """POST /api/v1/query should return 503 if output validation schema check fails (US-025)."""
+    mock_val = ValidationResult(valid=False, reason="schema-invalid", details="Missing answer field")
+    with patch("agent.app.routers.query.guardrails_client.validate_output", return_value=mock_val):
+        mock_kb_response = MagicMock()
+        mock_kb_response.status_code = 200
+        mock_kb_response.json.return_value = {"evidence": [{"chunk_id": "chk-1", "content": "text"}]}
+
+        mock_async_client = AsyncMock()
+        mock_async_client.post.return_value = mock_kb_response
+
+        with patch("agent.app.client.http_client.get_client", return_value=mock_async_client):
+            response = client.post(
+                "/api/v1/query",
+                headers={"X-Internal-API-Key": TEST_KEY},
+                json={
+                    "query": "Explain security policy",
+                    "requester_identity": "alice@example.com",
+                    "top_k": 5,
+                },
+            )
+
+            assert response.status_code == 503
+            assert "Output validation failed: schema-invalid" in response.json()["detail"]
+
+
+def test_query_endpoint_output_validation_safety_failed():
+    """POST /api/v1/query should return 503 if output validation safety check fails (US-025)."""
+    mock_val = ValidationResult(valid=False, reason="safety-check-failed", details="Harmful pattern")
+    with patch("agent.app.routers.query.guardrails_client.validate_output", return_value=mock_val):
+        mock_kb_response = MagicMock()
+        mock_kb_response.status_code = 200
+        mock_kb_response.json.return_value = {"evidence": [{"chunk_id": "chk-1", "content": "text"}]}
+
+        mock_async_client = AsyncMock()
+        mock_async_client.post.return_value = mock_kb_response
+
+        with patch("agent.app.client.http_client.get_client", return_value=mock_async_client):
+            response = client.post(
+                "/api/v1/query",
+                headers={"X-Internal-API-Key": TEST_KEY},
+                json={
+                    "query": "Explain security policy",
+                    "requester_identity": "alice@example.com",
+                    "top_k": 5,
+                },
+            )
+
+            assert response.status_code == 503
+            assert "Output validation failed: safety-check-failed" in response.json()["detail"]

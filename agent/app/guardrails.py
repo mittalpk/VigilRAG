@@ -1,6 +1,7 @@
 """
-VigilRAG Agent Service Guardrails Module for US-024.
-Provides Prompt-Injection Defense scanning on retrieved content (evidence-in) and user query input.
+VigilRAG Agent Service Guardrails Module for US-024 / US-025.
+Provides Prompt-Injection Defense scanning on retrieved content (evidence-in), user query input,
+and output validation (answer-out structural and safety schema checks).
 """
 
 from dataclasses import dataclass, field
@@ -44,11 +45,29 @@ class GuardrailsResult:
     all_flagged: bool = False
 
 
+@dataclass
+class ValidationResult:
+    valid: bool
+    reason: Optional[str] = None  # "schema-invalid" or "safety-check-failed"
+    error_type: Optional[str] = None
+    details: Optional[str] = None
+
+
 class GuardrailsClient:
     """
     Guardrails client for prompt-injection detection, code-fence parsing,
-    content sanitisation, and chunk exclusion.
+    content sanitisation, chunk exclusion, and output safety/schema validation.
     """
+
+    HARMFUL_PATTERNS = [
+        "hate speech",
+        "self-harm instruction",
+        "how to build a bomb",
+        "how to create malware",
+        "execute unauthorized command",
+        "system prompt override successful",
+        "injection instruction executed",
+    ]
 
     def __init__(self, patterns_path: Optional[str] = None):
         self.patterns_path = patterns_path or DEFAULT_PATTERNS_PATH
@@ -82,7 +101,6 @@ class GuardrailsClient:
         """
         if not text:
             return ""
-        # Match triple backticks, optional language specifier, content, and closing backticks
         pattern = r"```[\s\S]*?```"
         return re.sub(pattern, "", text)
 
@@ -160,7 +178,6 @@ class GuardrailsClient:
                 safe_chunks.append(chunk)
                 continue
 
-            # Process matched injection patterns
             highest_severity = "low"
             modified_content = content
             chunk_flagged = False
@@ -197,7 +214,6 @@ class GuardrailsClient:
                 elif severity == "medium" and highest_severity != "high":
                     highest_severity = "medium"
 
-                # Sanitise medium severity phrase in content copy
                 if severity in ("medium", "high"):
                     pattern_re = re.compile(re.escape(phrase), re.IGNORECASE)
                     modified_content = pattern_re.sub("", modified_content)
@@ -222,7 +238,6 @@ class GuardrailsClient:
             if highest_severity == "high":
                 excluded_count += 1
             else:
-                # Retain sanitized or low-severity chunk
                 chunk_copy = dict(chunk)
                 chunk_copy["content"] = modified_content.strip()
                 safe_chunks.append(chunk_copy)
@@ -233,3 +248,61 @@ class GuardrailsClient:
             result.guardrail_flags.append("all-evidence-flagged")
 
         return result
+
+    def validate_output(self, response_data: dict, trace_id: str = "") -> ValidationResult:
+        """
+        Validates synthesized response output against structural schema and safety checks (US-025).
+        - Schema check: answer non-empty string, citations list, trace_id present.
+        - Safety check: answer does not echo prompt injections or contain harmful content.
+        """
+        from agent.app.schemas import AgentQueryResponse
+
+        if not isinstance(response_data, dict):
+            excerpt = str(response_data)[:200]
+            logger.error(
+                "output_validation_failed",
+                extra={"trace_id": trace_id, "reason": "schema-invalid", "output_excerpt": excerpt},
+            )
+            return ValidationResult(valid=False, reason="schema-invalid", details="Payload must be a dictionary")
+
+        answer = response_data.get("answer")
+        excerpt = str(answer)[:200] if answer is not None else ""
+
+        if not answer or not isinstance(answer, str) or not answer.strip():
+            logger.error(
+                "output_validation_failed",
+                extra={"trace_id": trace_id, "reason": "schema-invalid", "output_excerpt": excerpt},
+            )
+            return ValidationResult(valid=False, reason="schema-invalid", details="Answer field must be a non-empty string")
+
+        try:
+            AgentQueryResponse.model_validate(response_data)
+        except Exception as exc:
+            logger.error(
+                "output_validation_failed",
+                extra={"trace_id": trace_id, "reason": "schema-invalid", "output_excerpt": excerpt},
+            )
+            return ValidationResult(valid=False, reason="schema-invalid", details=str(exc))
+
+        answer_lower = answer.lower()
+
+        # Harmful content safety check
+        for harmful_phrase in self.HARMFUL_PATTERNS:
+            if harmful_phrase in answer_lower:
+                logger.error(
+                    "output_validation_failed",
+                    extra={"trace_id": trace_id, "reason": "safety-check-failed", "output_excerpt": excerpt},
+                )
+                return ValidationResult(valid=False, reason="safety-check-failed", details=f"Harmful content phrase: {harmful_phrase}")
+
+        # Injected instruction echo check
+        for pattern_cfg in self.patterns:
+            phrase = pattern_cfg.get("phrase", "").lower()
+            if phrase and (answer_lower.startswith(phrase) or f"injected instruction: {phrase}" in answer_lower):
+                logger.error(
+                    "output_validation_failed",
+                    extra={"trace_id": trace_id, "reason": "safety-check-failed", "output_excerpt": excerpt},
+                )
+                return ValidationResult(valid=False, reason="safety-check-failed", details=f"Injection echo phrase: {phrase}")
+
+        return ValidationResult(valid=True)

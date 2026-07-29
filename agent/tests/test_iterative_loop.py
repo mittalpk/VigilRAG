@@ -30,10 +30,10 @@ async def test_iterative_loop_max_iterations_enforced():
     with patch("langchain_google_genai.ChatGoogleGenerativeAI.ainvoke", new_callable=AsyncMock) as mock_invoke, \
          patch("agent.app.tools.REGISTERED_TOOLS", []):
         mock_invoke.side_effect = [
-            mock_plan_resp, # plan
-            mock_eval_resp, # eval 1
-            mock_plan_resp, # decompose 1
-            mock_eval_resp, # eval 2
+            mock_plan_resp, # plan (iteration 1)
+            mock_eval_resp, # evaluate (iteration 1 -> sufficient=False)
+            mock_plan_resp, # decompose (iteration 1 -> produces sub-query plan for iteration 2)
+            mock_eval_resp, # evaluate (iteration 2 -> max_iterations=2 reached)
             mock_pro_resp,  # respond
         ]
 

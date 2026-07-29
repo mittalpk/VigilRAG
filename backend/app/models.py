@@ -352,6 +352,78 @@ class ServiceApiKey(Base):
     )
 
 
+class ArchivedQuery(Base):
+    """Cold-storage archive of audit queries after retention (US-039 / NFR-004)."""
+
+    __tablename__ = "archived_queries"
+
+    id = Column(String(100), primary_key=True)
+    requester_identity = Column(String(255), nullable=False, index=True)
+    query_text = Column(Text, nullable=False)
+    trace_id = Column(String(100), nullable=False)
+    original_created_at = Column(DateTime(timezone=True), nullable=False)
+    answer_text = Column(Text, nullable=True)
+    groundedness_score = Column(Float, nullable=True)
+    guardrail_flags_json = Column(Text, nullable=False, default="[]")
+    evidence_json = Column(Text, nullable=False, default="[]")
+    archived_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    retention_run_id = Column(String(100), nullable=False, index=True)
+
+
+class RetentionRun(Base):
+    """Log of each audit retention job execution (US-039)."""
+
+    __tablename__ = "retention_runs"
+
+    id = Column(String(100), primary_key=True)
+    started_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    finished_at = Column(DateTime(timezone=True), nullable=True)
+    status = Column(String(50), nullable=False, default="running")  # running|success|failed
+    cutoff_at = Column(DateTime(timezone=True), nullable=False)
+    records_archived = Column(Integer, nullable=False, default=0)
+    error_message = Column(Text, nullable=True)
+    retention_days = Column(Integer, nullable=False, default=365)
+
+
+class AuditExport(Base):
+    """Compliance audit export jobs with TTL download tokens (US-039)."""
+
+    __tablename__ = "audit_exports"
+
+    id = Column(String(100), primary_key=True)
+    requested_by = Column(String(255), nullable=False, index=True)
+    from_date = Column(DateTime(timezone=True), nullable=False)
+    to_date = Column(DateTime(timezone=True), nullable=False)
+    format = Column(String(20), nullable=False, default="csv")  # csv|pdf|json
+    status = Column(String(50), nullable=False, default="pending")  # pending|ready|failed|expired
+    file_path = Column(Text, nullable=True)
+    row_count = Column(Integer, nullable=False, default=0)
+    download_token_hash = Column(String(64), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    ready_at = Column(DateTime(timezone=True), nullable=True)
+    error_message = Column(Text, nullable=True)
+    identity_filter = Column(String(255), nullable=True)
+    search_query = Column(String(500), nullable=True)
+    async_mode = Column(Boolean, nullable=False, default=False)
+    notification_sent = Column(Boolean, nullable=False, default=False)
+
+
+class ScheduledReport(Base):
+    """Configured compliance digest destinations (US-039)."""
+
+    __tablename__ = "scheduled_reports"
+
+    id = Column(String(100), primary_key=True)
+    cadence = Column(String(20), nullable=False, default="weekly")  # weekly|monthly
+    channel = Column(String(50), nullable=False, default="log")  # log|slack|email
+    destination = Column(String(500), nullable=False, default="")
+    enabled = Column(Boolean, nullable=False, default=True)
+    last_run_at = Column(DateTime(timezone=True), nullable=True)
+    created_by = Column(String(255), nullable=False, default="system")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
 async def init_db():
 
     """Helper to initialize database tables."""

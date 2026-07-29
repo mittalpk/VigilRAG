@@ -121,7 +121,7 @@ Each story follows a consistent 16-section template:
 | US-034 | [US-034-model-system-card-publication.md](done/US-034-model-system-card-publication.md) | Model / System Card Publication | Completed | M |
 | US-035 | [US-035-terraform-network-drift.md](done/US-035-terraform-network-drift.md) | Terraform / Network Drift Reconciliation | Completed | M |
 | US-036 | [US-036-cost-dashboard-chaos-reliability.md](done/US-036-cost-dashboard-chaos-reliability.md) | Full Observability — Cost Dashboard, SLO Monitoring, Load Test & Chaos-Tested Reliability | Completed | L |
-| US-039 | [US-039-full-compliance-audit-log.md](US-039-full-compliance-audit-log.md) | Full Compliance-Grade Audit Log — Retention, Export & Scheduled Reports | FEAT-08 | High | L |
+| US-039 | [US-039-full-compliance-audit-log.md](done/US-039-full-compliance-audit-log.md) | Full Compliance-Grade Audit Log — Retention, Export & Scheduled Reports | Completed | L |
 
 ---
 

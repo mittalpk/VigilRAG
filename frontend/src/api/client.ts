@@ -151,6 +151,35 @@ export interface AuditQueryDetailResponse extends AuditQueryItem {
   truncated: boolean
 }
 
+export interface AuditExportResponse {
+  export_id: string
+  status: string
+  async: boolean
+  row_count: number
+  download_url?: string
+  expires_at?: string
+  message?: string
+}
+
+export interface AuditRetentionStatus {
+  retention_days: number
+  latest_run?: {
+    id: string
+    status: string
+    started_at?: string
+    finished_at?: string
+    records_archived?: number
+    cutoff_at?: string
+    error_message?: string
+  } | null
+  recent_runs: Array<{
+    id: string
+    status: string
+    records_archived?: number
+    started_at?: string
+  }>
+}
+
 export interface FeedbackResponse {
   received: boolean
   feedback_id: string
@@ -274,16 +303,32 @@ export const apiClient = {
     return request<EvaluationRunListResponse>(`${BACKEND_URL}/api/v1/admin/evaluation-runs?${params.toString()}`)
   },
 
-  getAuditQueries: (identity?: string, fromDate?: string, toDate?: string, page = 1, perPage = 50) => {
+  getAuditQueries: (identity?: string, fromDate?: string, toDate?: string, page = 1, perPage = 50, q?: string) => {
     const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
     if (identity) params.set('identity', identity)
     if (fromDate) params.set('from_date', fromDate)
     if (toDate) params.set('to_date', toDate)
+    if (q) params.set('q', q)
     return request<AuditQueryListResponse>(`${BACKEND_URL}/api/v1/audit/queries?${params.toString()}`)
   },
 
   getAuditQueryDetail: (queryId: string) =>
     request<AuditQueryDetailResponse>(`${BACKEND_URL}/api/v1/audit/queries/${queryId}`),
+
+  exportAuditLog: (fromDate: string, toDate: string, format: 'csv' | 'pdf' | 'json' = 'csv', identity?: string, q?: string) =>
+    request<AuditExportResponse>(`${BACKEND_URL}/api/v1/audit/export`, {
+      method: 'POST',
+      body: JSON.stringify({ from_date: fromDate, to_date: toDate, format, identity, q }),
+    }),
+
+  getAuditRetentionStatus: () =>
+    request<AuditRetentionStatus>(`${BACKEND_URL}/api/v1/audit/retention`),
+
+  triggerAuditDigest: (cadence: 'weekly' | 'monthly' = 'weekly') =>
+    request<{ status: string; stats: Record<string, unknown> }>(
+      `${BACKEND_URL}/api/v1/audit/digest?cadence=${cadence}`,
+      { method: 'POST' }
+    ),
 
   submitFeedback: (queryId: string, rating: 'positive' | 'negative', comment?: string) =>
     request<FeedbackResponse>(`${BACKEND_URL}/api/v1/feedback`, {

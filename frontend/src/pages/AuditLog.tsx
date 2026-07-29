@@ -1,8 +1,15 @@
 import { useState, useEffect } from 'react'
-import { apiClient, AuditQueryItem, AuditQueryDetailResponse } from '../api/client'
+import {
+  apiClient,
+  AuditQueryItem,
+  AuditQueryDetailResponse,
+  AuditExportResponse,
+  AuditRetentionStatus,
+} from '../api/client'
 
 export default function AuditLog() {
   const [identityFilter, setIdentityFilter] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
   const [page, setPage] = useState(1)
@@ -12,6 +19,9 @@ export default function AuditLog() {
   const [queries, setQueries] = useState<AuditQueryItem[]>([])
   const [total, setTotal] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [exportMsg, setExportMsg] = useState<string | null>(null)
+  const [exporting, setExporting] = useState(false)
+  const [retention, setRetention] = useState<AuditRetentionStatus | null>(null)
 
   const [selectedQueryDetail, setSelectedQueryDetail] = useState<AuditQueryDetailResponse | null>(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
@@ -25,7 +35,8 @@ export default function AuditLog() {
         fromDate.trim() || undefined,
         toDate.trim() || undefined,
         page,
-        perPage
+        perPage,
+        searchQuery.trim() || undefined
       )
       setQueries(res.items)
       setTotal(res.total)
@@ -36,8 +47,18 @@ export default function AuditLog() {
     }
   }
 
+  const loadRetention = async () => {
+    try {
+      const status = await apiClient.getAuditRetentionStatus()
+      setRetention(status)
+    } catch {
+      // Retention panel is best-effort for non-admin contexts
+    }
+  }
+
   useEffect(() => {
     loadAuditLogs()
+    loadRetention()
   }, [page])
 
   const handleFilterSubmit = (e: React.FormEvent) => {
@@ -59,6 +80,44 @@ export default function AuditLog() {
     }
   }
 
+  const handleExport = async (format: 'csv' | 'pdf') => {
+    if (!fromDate.trim() || !toDate.trim()) {
+      setError('Export requires From Date and To Date')
+      return
+    }
+    setExporting(true)
+    setExportMsg(null)
+    setError(null)
+    try {
+      const res: AuditExportResponse = await apiClient.exportAuditLog(
+        fromDate.trim(),
+        toDate.trim(),
+        format,
+        identityFilter.trim() || undefined,
+        searchQuery.trim() || undefined
+      )
+      const ttlNote = res.expires_at ? ` Expires ${new Date(res.expires_at).toLocaleString()}.` : ''
+      setExportMsg(
+        `Export ${res.export_id} ${res.status} (${res.row_count} rows).` +
+          (res.async ? ' Async (202) path used.' : '') +
+          ttlNote
+      )
+      if (res.download_url) {
+        const backendBase = (import.meta.env.VITE_BACKEND_URL as string | undefined) ?? ''
+        const abs = res.download_url.startsWith('http')
+          ? res.download_url
+          : backendBase.startsWith('http')
+            ? `${backendBase.replace(/\/$/, '')}${res.download_url}`
+            : res.download_url
+        window.open(abs, '_blank', 'noopener,noreferrer')
+      }
+    } catch (err: any) {
+      setError(err.message || 'Export failed')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const totalPages = Math.ceil(total / perPage) || 1
 
   return (
@@ -67,11 +126,27 @@ export default function AuditLog() {
         <div>
           <h2 className="card-title">Compliance Audit Log</h2>
           <p className="card-hint">
-            Read-only compliance audit trail capturing requester identities, queries, retrieved evidence items, and synthesized answers.
+            Compliance-grade audit trail with full-text search, retention status, and CSV/PDF export (US-039 / NFR-004).
           </p>
         </div>
-        <span className="badge badge-info">FR-008 / NFR-004 Read-Only</span>
+        <span className="badge badge-info">FR-008 / NFR-004</span>
       </div>
+
+      {retention && (
+        <div
+          className="mt-16"
+          style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 6, padding: 12, fontSize: '0.85rem' }}
+        >
+          <strong style={{ color: '#e2e8f0' }}>Retention policy:</strong>{' '}
+          <span style={{ color: '#94a3b8' }}>{retention.retention_days} days</span>
+          {retention.latest_run && (
+            <span style={{ color: '#94a3b8', marginLeft: 12 }}>
+              Last run: {retention.latest_run.status} — archived {retention.latest_run.records_archived ?? 0}{' '}
+              ({retention.latest_run.started_at ? new Date(retention.latest_run.started_at).toLocaleString() : 'n/a'})
+            </span>
+          )}
+        </div>
+      )}
 
       <form onSubmit={handleFilterSubmit} className="mt-16" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <div className="form-group" style={{ flex: '1 1 200px' }}>
@@ -83,6 +158,18 @@ export default function AuditLog() {
             placeholder="Filter by email or username..."
             value={identityFilter}
             onChange={(e) => setIdentityFilter(e.target.value)}
+          />
+        </div>
+
+        <div className="form-group" style={{ flex: '1 1 200px' }}>
+          <label style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Full-text search</label>
+          <input
+            type="text"
+            className="task-input"
+            style={{ padding: '8px 12px' }}
+            placeholder="Search query text (?q=)..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
@@ -108,7 +195,7 @@ export default function AuditLog() {
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Searching...' : 'Apply Filters'}
           </button>
@@ -117,6 +204,7 @@ export default function AuditLog() {
             className="btn-secondary"
             onClick={() => {
               setIdentityFilter('')
+              setSearchQuery('')
               setFromDate('')
               setToDate('')
               setPage(1)
@@ -126,8 +214,21 @@ export default function AuditLog() {
           >
             Reset
           </button>
+          <button type="button" className="btn-secondary" disabled={exporting} onClick={() => handleExport('csv')}>
+            {exporting ? 'Exporting...' : 'Export CSV'}
+          </button>
+          <button type="button" className="btn-secondary" disabled={exporting} onClick={() => handleExport('pdf')}>
+            Export PDF
+          </button>
         </div>
       </form>
+
+      {exportMsg && (
+        <div className="mt-12 p-12" style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 6 }}>
+          <span className="badge badge-info">Export</span>
+          <p style={{ color: '#cbd5e1', marginTop: 4, fontSize: '0.85rem' }}>{exportMsg}</p>
+        </div>
+      )}
 
       {error && (
         <div className="error-card mt-16 p-12">
@@ -203,7 +304,6 @@ export default function AuditLog() {
         </table>
       </div>
 
-      {/* Pagination Controls */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
         <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
           Showing page {page} of {totalPages} ({total} total records)
@@ -226,7 +326,6 @@ export default function AuditLog() {
         </div>
       </div>
 
-      {/* Detail Drill-Down Modal */}
       {(selectedQueryDetail || loadingDetail) && (
         <div className="modal-backdrop fade-in" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div className="modal-card" style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', padding: '24px', maxWidth: '800px', width: '90%', maxHeight: '85vh', overflowY: 'auto' }}>

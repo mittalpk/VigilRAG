@@ -107,6 +107,41 @@ class AuditQueryDetailResponse(AuditQueryItem):
     truncated: bool = False
 
 
+class AuditExportRequest(BaseModel):
+    from_date: str = Field(..., description="Range start (ISO or YYYY-MM-DD)")
+    to_date: str = Field(..., description="Range end (ISO or YYYY-MM-DD)")
+    format: str = Field("csv", description="Export format: csv|pdf|json")
+    identity: Optional[str] = Field(None, description="Optional requester identity filter")
+    q: Optional[str] = Field(None, description="Optional full-text search term")
+    force_async: bool = Field(False, description="Force async (202) path for testing/large exports")
+
+
+class AuditExportResponse(BaseModel):
+    export_id: str
+    status: str
+    async_mode: bool = Field(False, alias="async")
+    row_count: int = 0
+    download_url: Optional[str] = None
+    expires_at: Optional[str] = None
+    message: Optional[str] = None
+
+    model_config = {"populate_by_name": True}
+
+
+class AuditRetentionStatusResponse(BaseModel):
+    retention_days: int
+    latest_run: Optional[Dict[str, Any]] = None
+    recent_runs: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+class AuditDigestResponse(BaseModel):
+    status: str
+    stats: Dict[str, Any]
+    delivery: Dict[str, Any]
+    scheduled_report_id: Optional[str] = None
+    markdown: Optional[str] = None
+
+
 # ── Feedback Schemas (US-019) ───────────────────────────────────────────────
 
 class FeedbackCreateRequest(BaseModel):

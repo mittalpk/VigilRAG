@@ -76,7 +76,7 @@ Per [Roadmap §5](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) and [
 
 - [x] Install **Guardrails AI** / custom evidence-in guardrail scanner (`GuardrailsClient` in `agent/app/guardrails.py`); configure an evidence-in check that scans retrieved chunks for known prompt-injection patterns before they reach the synthesis model. Completed 2026-07-29 (US-024).
 - [x] Configure an answer-out check (`GuardrailsClient.validate_output()`) that validates synthesized output against a structural/safety schema before it's returned to the caller. Completed 2026-07-29 (US-025).
-- [ ] Install **Microsoft Presidio** for PII detection/redaction (NFR-003) — a distinct concern from injection defense; don't conflate the two in one control.
+- [x] Install **Microsoft Presidio** for PII detection/redaction (NFR-003) — `GuardrailsClient.pii_redact()` in `agent/app/guardrails.py`. Completed 2026-07-29 (US-026).
 - [ ] Build a maintained fixture test suite of known prompt-injection patterns embedded in sample source documents; run it in CI alongside the RAG evaluation harness (4.4).
 - [ ] Done-check: every fixture in the injection test suite is blocked or neutralized; a fixture producing a malformed/unsafe output is rejected before delivery, not just logged.
 

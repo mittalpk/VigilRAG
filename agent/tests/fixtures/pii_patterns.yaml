@@ -1,0 +1,16 @@
+fixtures:
+  - id: "PII-FIX-001"
+    name: "Email and Phone in text"
+    input: "Contact Alice Smith at alice@example.com or +1-555-019-2831 for support."
+    expected_redacted: "Contact [REDACTED-PERSON] at [REDACTED-EMAIL] or [REDACTED-PHONE] for support."
+    expected_flags: ["pii-redacted:EMAIL", "pii-redacted:PERSON", "pii-redacted:PHONE"]
+  - id: "PII-FIX-002"
+    name: "Code identifier AliceBlue false positive"
+    input: "Use CSS color AliceBlue or variable JohnDoeVar."
+    expected_redacted: "Use CSS color AliceBlue or variable JohnDoeVar."
+    expected_flags: []
+  - id: "PII-FIX-003"
+    name: "Entire answer is PII"
+    input: "jane.smith@corporation.com"
+    expected_redacted: "[REDACTED-EMAIL]"
+    expected_flags: ["pii-redacted:EMAIL", "pii-redacted:ALL"]

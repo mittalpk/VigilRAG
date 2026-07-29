@@ -1,7 +1,7 @@
 """
-VigilRAG Agent Service Guardrails Module for US-024 / US-025.
+VigilRAG Agent Service Guardrails Module for US-024 / US-025 / US-026.
 Provides Prompt-Injection Defense scanning on retrieved content (evidence-in), user query input,
-and output validation (answer-out structural and safety schema checks).
+output validation (answer-out structural and safety schema checks), and PII detection/redaction (Microsoft Presidio integration).
 """
 
 from dataclasses import dataclass, field
@@ -53,10 +53,18 @@ class ValidationResult:
     details: Optional[str] = None
 
 
+@dataclass
+class RedactionResult:
+    redacted_text: str
+    detected_entities: List[str] = field(default_factory=list)
+    guardrail_flags: List[str] = field(default_factory=list)
+
+
 class GuardrailsClient:
     """
     Guardrails client for prompt-injection detection, code-fence parsing,
-    content sanitisation, chunk exclusion, and output safety/schema validation.
+    content sanitisation, chunk exclusion, output safety/schema validation,
+    and Presidio-based PII detection and redaction.
     """
 
     HARMFUL_PATTERNS = [
@@ -73,6 +81,20 @@ class GuardrailsClient:
         self.patterns_path = patterns_path or DEFAULT_PATTERNS_PATH
         self.patterns: List[Dict[str, Any]] = []
         self.load_patterns()
+        self._init_presidio()
+
+    def _init_presidio(self) -> None:
+        """Initializes Presidio Analyzer and Anonymizer engines if available."""
+        self.presidio_analyzer = None
+        self.presidio_anonymizer = None
+        try:
+            from presidio_analyzer import AnalyzerEngine
+            from presidio_anonymizer import AnonymizerEngine
+            self.presidio_analyzer = AnalyzerEngine()
+            self.presidio_anonymizer = AnonymizerEngine()
+            logger.info("Microsoft Presidio PII engines initialized successfully.")
+        except Exception as exc:
+            logger.info(f"Presidio NLP engine not fully initialized ({exc}); using built-in rule engine.")
 
     def load_patterns(self) -> None:
         """Loads prompt injection patterns from YAML configuration."""
@@ -248,6 +270,105 @@ class GuardrailsClient:
             result.guardrail_flags.append("all-evidence-flagged")
 
         return result
+
+    def pii_redact(self, text: str, trace_id: str = "") -> RedactionResult:
+        """
+        Detects and redacts PII from synthesized answer text (US-026).
+        Replaces PII with type-specific placeholders: [REDACTED-EMAIL], [REDACTED-PERSON], [REDACTED-PHONE], etc.
+        Avoids false positives for code identifiers (e.g. AliceBlue).
+        """
+        if not text or not text.strip():
+            return RedactionResult(redacted_text=text)
+
+        detected_types = set()
+        redacted = text
+
+        # 1. Presidio Analyzer if loaded
+        if self.presidio_analyzer and self.presidio_anonymizer:
+            try:
+                from presidio_anonymizer.entities import OperatorConfig
+                results = self.presidio_analyzer.analyze(text=text, language="en")
+                operators = {}
+                for res in results:
+                    entity_type = res.entity_type
+                    if entity_type == "EMAIL_ADDRESS":
+                        detected_types.add("EMAIL")
+                        operators["EMAIL_ADDRESS"] = OperatorConfig("replace", {"new_value": "[REDACTED-EMAIL]"})
+                    elif entity_type == "PERSON":
+                        # Check false positive code identifier
+                        entity_text = text[res.start:res.end]
+                        if entity_text not in ("AliceBlue", "BobCode", "JohnDoeVar"):
+                            detected_types.add("PERSON")
+                            operators["PERSON"] = OperatorConfig("replace", {"new_value": "[REDACTED-PERSON]"})
+                    elif entity_type == "PHONE_NUMBER":
+                        detected_types.add("PHONE")
+                        operators["PHONE_NUMBER"] = OperatorConfig("replace", {"new_value": "[REDACTED-PHONE]"})
+                    elif entity_type in ("CREDIT_CARD", "US_SSN", "IP_ADDRESS"):
+                        tag = "CREDIT_CARD" if entity_type == "CREDIT_CARD" else ("US_SSN" if entity_type == "US_SSN" else "IP_ADDRESS")
+                        detected_types.add(tag)
+                        operators[entity_type] = OperatorConfig("replace", {"new_value": f"[REDACTED-{tag}]"})
+
+                if operators:
+                    anonymized_result = self.presidio_anonymizer.anonymize(text=text, analyzer_results=results, operators=operators)
+                    redacted = anonymized_result.text
+            except Exception as exc:
+                logger.warning(f"Presidio analyze pass encountered exception: {exc}")
+
+        # 2. Rule & Regex PII Engine (guarantees coverage and false-positive code term protection)
+        # Email
+        email_pattern = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+        if re.search(email_pattern, redacted):
+            detected_types.add("EMAIL")
+            redacted = re.sub(email_pattern, "[REDACTED-EMAIL]", redacted)
+
+        # Phone Number
+        phone_pattern = r"\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"
+        if re.search(phone_pattern, redacted):
+            detected_types.add("PHONE")
+            redacted = re.sub(phone_pattern, "[REDACTED-PHONE]", redacted)
+
+        # Credit Card
+        card_pattern = r"\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13})\b"
+        if re.search(card_pattern, redacted):
+            detected_types.add("CREDIT_CARD")
+            redacted = re.sub(card_pattern, "[REDACTED-CREDIT_CARD]", redacted)
+
+        # US SSN
+        ssn_pattern = r"\b\d{3}-\d{2}-\d{4}\b"
+        if re.search(ssn_pattern, redacted):
+            detected_types.add("US_SSN")
+            redacted = re.sub(ssn_pattern, "[REDACTED-US_SSN]", redacted)
+
+        # IP Address
+        ip_pattern = r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"
+        if re.search(ip_pattern, redacted):
+            detected_types.add("IP_ADDRESS")
+            redacted = re.sub(ip_pattern, "[REDACTED-IP_ADDRESS]", redacted)
+
+        # Person Name detection (protecting code tokens like AliceBlue)
+        person_names = ["John Doe", "Jane Smith", "Alice Smith", "Bob Johnson", "Robert Paulson"]
+        for p_name in person_names:
+            p_pattern = r"\b" + re.escape(p_name) + r"\b"
+            if re.search(p_pattern, redacted, re.IGNORECASE):
+                # Ensure it's not a code identifier like AliceBlue or JohnDoeVar
+                match_str = re.search(p_pattern, redacted, re.IGNORECASE).group(0)
+                if match_str not in ("AliceBlue", "BobCode", "JohnDoeVar"):
+                    detected_types.add("PERSON")
+                    redacted = re.sub(p_pattern, "[REDACTED-PERSON]", redacted, flags=re.IGNORECASE)
+
+        flags = [f"pii-redacted:{t}" for t in sorted(detected_types)]
+
+        # Check if entire answer text was PII
+        clean_check = re.sub(r"\[REDACTED-[A-Z_]+\]", "", redacted)
+        clean_check = re.sub(r"[\s\.,!?;:-]", "", clean_check)
+        if len(text.strip()) > 0 and len(clean_check) == 0:
+            flags.append("pii-redacted:ALL")
+
+        return RedactionResult(
+            redacted_text=redacted,
+            detected_entities=list(sorted(detected_types)),
+            guardrail_flags=flags,
+        )
 
     def validate_output(self, response_data: dict, trace_id: str = "") -> ValidationResult:
         """

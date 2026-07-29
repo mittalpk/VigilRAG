@@ -1,9 +1,9 @@
 """
-Agent Service Unified Query API Router for US-011 / US-024 / US-025.
+Agent Service Unified Query API Router for US-011 / US-024 / US-025 / US-026.
 
 Provides:
 - POST /api/v1/query: Orchestrates retrieval over backend Knowledge API, applies Guardrails scan,
-  synthesises cited answer, and runs answer-out output validation before returning response.
+  synthesises cited answer, runs Presidio PII redaction, and performs answer-out output validation before returning response.
 """
 
 from datetime import datetime
@@ -143,6 +143,13 @@ async def execute_agent_query(
         )
         answer = f"Based on retrieved evidence:\n{evidence_summary}\n\nConclusion: Processed query '{sanitized_query}' successfully."
 
+    # 5. PII Detection & Redaction (US-026)
+    redaction_res = guardrails_client.pii_redact(answer, trace_id=trace_id)
+    answer = redaction_res.redacted_text
+    for flag in redaction_res.guardrail_flags:
+        if flag not in guardrail_flags:
+            guardrail_flags.append(flag)
+
     exec_time_ms = int((datetime.now() - start_time).total_seconds() * 1000)
 
     response_dict = {
@@ -153,7 +160,7 @@ async def execute_agent_query(
         "execution_time_ms": exec_time_ms,
     }
 
-    # 5. Output Validation Check (US-025 - answer-out guardrail)
+    # 6. Output Validation Check (US-025 - answer-out guardrail)
     validation = guardrails_client.validate_output(response_dict, trace_id=trace_id)
     if not validation.valid:
         raise HTTPException(

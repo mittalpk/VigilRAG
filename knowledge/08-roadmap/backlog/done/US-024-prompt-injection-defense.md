@@ -1,5 +1,7 @@
 # US-024 — Prompt-Injection Defense — Retrieved Content Scan
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As a** Security Engineer,  
@@ -86,16 +88,16 @@ Prompt injection is an attack where malicious instructions embedded in retrieved
 
 ## Definition of Done
 
-- [ ] `agent/app/guardrails.py` `GuardrailsClient.scan_evidence()` implemented.
-- [ ] `agent/app/guardrails_patterns.yaml` with initial pattern list (minimum 10 patterns).
-- [ ] Code fence exclusion implemented and tested.
-- [ ] `guardrail_flags` written to `Answer` records for detected injections.
-- [ ] All injection events logged with `trace_id`, `chunk_id`, and pattern.
-- [ ] Fail-closed: guardrail service unavailable → HTTP 503.
-- [ ] Unit tests: known injection pattern flagged; code-fenced injection not flagged; all-chunks-flagged case.
-- [ ] US-027 fixture suite passes (done-check from US-027's perspective, but the fixture suite must be available for this story's tests).
-- [ ] CI passes.
-- [ ] Execution Runbook §4.5 first bullet marked `[x]`.
+- [x] `agent/app/guardrails.py` `GuardrailsClient.scan_evidence()` implemented.
+- [x] `agent/app/guardrails_patterns.yaml` with initial pattern list (minimum 10 patterns).
+- [x] Code fence exclusion implemented and tested.
+- [x] `guardrail_flags` written to `Answer` records for detected injections.
+- [x] All injection events logged with `trace_id`, `chunk_id`, and pattern.
+- [x] Fail-closed: guardrail service unavailable → HTTP 503.
+- [x] Unit tests: known injection pattern flagged; code-fenced injection not flagged; all-chunks-flagged case.
+- [x] US-027 fixture suite passes (done-check from US-027's perspective, but the fixture suite must be available for this story's tests).
+- [x] CI passes.
+- [x] Execution Runbook §4.5 first bullet marked `[x]`.
 
 ---
 

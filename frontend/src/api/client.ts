@@ -148,14 +148,6 @@ export interface AuditQueryDetailResponse extends AuditQueryItem {
   truncated: boolean
 }
 
-export interface FeedbackResponse {
-  received: boolean
-  feedback_id: string
-  query_id: string
-  rating: string
-  message: string
-}
-
 export const apiClient = {
   setToken: (token: string | null) => {
     authToken = token
@@ -206,10 +198,4 @@ export const apiClient = {
 
   getAuditQueryDetail: (queryId: string) =>
     request<AuditQueryDetailResponse>(`${BACKEND_URL}/api/v1/audit/queries/${queryId}`),
-
-  submitFeedback: (queryId: string, rating: 'positive' | 'negative', comment?: string) =>
-    request<FeedbackResponse>(`${BACKEND_URL}/api/v1/feedback`, {
-      method: 'POST',
-      body: JSON.stringify({ query_id: queryId, rating, comment }),
-    }),
 }

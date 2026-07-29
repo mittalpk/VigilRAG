@@ -97,6 +97,7 @@ Per [Roadmap §5](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) and [
 - [x] Implement cross-encoder retrieval reranking step (FR-011: CrossEncoderReranker, populate rerank_score, fallback handling on error) (US-033). Completed 2026-07-29.
 - [x] Implement Model / System Card publication pipeline & endpoints (FR-013, NFR-012: publish_model_card.py, NIST/ISO governance framework mapping, GET /api/v1/admin/model-cards/latest) (US-034). Completed 2026-07-29.
 - [x] Reconcile Terraform / Network Drift (ADR-002: Option A VNet/NSG subnet integration for Container Apps environment; RISK-008 resolved) (US-035). Completed 2026-07-29.
+- [x] Full observability — cost-per-query dashboard, availability SLO (99.5%) + alerting, 5× load test, and GitHub-connector chaos graceful degradation (US-036 / NFR-001, NFR-005, NFR-008, NFR-009). Completed 2026-07-29 (`CostDashboard.tsx`, `SLODashboard.tsx`, `query_costs` / `health_probes`, `scripts/load/locustfile.py`, chaos report artefacts).
 - [ ] Ship the interactive UI query flow (FR-001) against the upgraded retrieval/orchestration stack, ensuring the query router uses a modular pattern (e.g., broker or query planner interface) to support future multi-engine routing (vector + graph).
 - [ ] Done-check: MVP success criteria from [MVP Definition §5](../05-lean-product/MVP_DEFINITION.md#5-mvp-success-criteria-gono-go-for-full-program-backlog-investment) measured and reviewed at the Gate 1→2 decision point.
 

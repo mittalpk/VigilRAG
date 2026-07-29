@@ -81,6 +81,8 @@ const AgentAnimation = () => (
 );
 
 import EvaluationDashboard from './EvaluationDashboard'
+import CostDashboard from './CostDashboard'
+import SLODashboard from './SLODashboard'
 import AuditLog from './pages/AuditLog'
 import FeedbackBar from './FeedbackBar'
 import FeedbackReview from './pages/FeedbackReview'
@@ -90,7 +92,7 @@ export default function App() {
   useEffect(() => {
     console.log('🚀 VigilRAG Production UI loaded correctly. Version: 1.0.1 (Final)');
   }, [])
-  const [activeTab, setActiveTab] = useState<'knowledge' | 'agent' | 'evaluation' | 'audit' | 'feedback-review' | 'sources' | 'documentation'>('knowledge')
+  const [activeTab, setActiveTab] = useState<'knowledge' | 'agent' | 'evaluation' | 'cost' | 'slo' | 'audit' | 'feedback-review' | 'sources' | 'documentation'>('knowledge')
 
   // Knowledge State
   const [query, setQuery] = useState('')
@@ -253,6 +255,20 @@ export default function App() {
             onClick={() => setActiveTab('evaluation')}
           >
             Evaluation Harness
+          </button>
+          <button
+            id="tab-cost"
+            className={`tab ${activeTab === 'cost' ? 'active' : ''}`}
+            onClick={() => setActiveTab('cost')}
+          >
+            Cost Dashboard
+          </button>
+          <button
+            id="tab-slo"
+            className={`tab ${activeTab === 'slo' ? 'active' : ''}`}
+            onClick={() => setActiveTab('slo')}
+          >
+            SLO Dashboard
           </button>
           <button
             id="tab-feedback"
@@ -518,6 +534,18 @@ export default function App() {
         {activeTab === 'evaluation' && (
           <div className="tab-content fade-in">
             <EvaluationDashboard />
+          </div>
+        )}
+
+        {activeTab === 'cost' && (
+          <div className="tab-content fade-in">
+            <CostDashboard />
+          </div>
+        )}
+
+        {activeTab === 'slo' && (
+          <div className="tab-content fade-in">
+            <SLODashboard />
           </div>
         )}
 

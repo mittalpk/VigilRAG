@@ -25,3 +25,8 @@ class AgentQueryResponse(BaseModel):
     trace_id: str = Field(..., description="Unique trace ID for telemetry and debugging")
     guardrail_flags: List[str] = Field(default_factory=list, description="Flags produced by guardrails validation")
     execution_time_ms: int = Field(..., description="End-to-end execution latency in milliseconds")
+    # US-036 / NFR-005: graceful degradation when a source connector is unavailable
+    source_availability_warning: List[str] = Field(
+        default_factory=list,
+        description="Connector availability warnings (e.g. github-unavailable)",
+    )

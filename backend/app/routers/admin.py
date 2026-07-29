@@ -18,11 +18,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.auth import require_admin
 from backend.app.models import AnswerRecord, EvaluationCase, EvaluationRun, FeedbackRecord, FeedbackReviewItem, QueryRecord, get_db_session
 from backend.app.schemas import (
+    CostDashboardResponse,
+    CostDailyPoint,
     EvaluationRunListResponse,
     EvaluationRunResponse,
     FeedbackActionRequest,
     FeedbackReviewItemResponse,
     FeedbackReviewListResponse,
+    HealthProbeRequest,
+    HealthProbeResponse,
+    QueryCostRecordRequest,
+    QueryCostRecordResponse,
+    SLOAlertEvaluateResponse,
+    SLODailyPoint,
+    SLODashboardResponse,
+    AvailabilityAlertItem,
 )
 
 router = APIRouter()
@@ -248,4 +258,138 @@ async def action_feedback_review_item(
 
     await session.commit()
     return {"success": True, "item_id": item.id, "status": item.status}
+
+
+# ── Cost Dashboard Endpoints (US-036 / NFR-009) ─────────────────────────────
+
+@router.get("/costs/dashboard", response_model=CostDashboardResponse)
+async def get_cost_dashboard(
+    days: int = Query(30, ge=1, le=365, description="Lookback window in days"),
+    admin_identity: str = Depends(require_admin),
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Admin-only cost-per-query dashboard (USD estimates from OTel token attributes)."""
+    from backend.app.services.cost_service import get_cost_dashboard as build_cost_dashboard
+
+    summary = await build_cost_dashboard(session, days=days)
+    return CostDashboardResponse(
+        total_cost_usd=summary.total_cost_usd,
+        total_queries=summary.total_queries,
+        avg_cost_per_query_usd=summary.avg_cost_per_query_usd,
+        cost_by_model=summary.cost_by_model,
+        daily_trend=[CostDailyPoint(**d) for d in summary.daily_trend],
+        pi_total_cost_usd=summary.pi_total_cost_usd,
+        alert_spike=summary.alert_spike,
+        spike_message=summary.spike_message,
+        window_days=days,
+    )
+
+
+@router.post("/costs/record", response_model=QueryCostRecordResponse, status_code=status.HTTP_201_CREATED)
+async def record_cost(
+    body: QueryCostRecordRequest,
+    admin_identity: str = Depends(require_admin),
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Admin/internal endpoint to persist a query cost row from OTel span attributes."""
+    from backend.app.services.cost_service import normalize_model_family, record_query_cost
+
+    if not body.query_id or not body.trace_id or not body.model:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="query_id, trace_id, and model are required",
+        )
+
+    record = await record_query_cost(
+        session,
+        query_id=body.query_id,
+        trace_id=body.trace_id,
+        model=body.model,
+        input_tokens=body.input_tokens,
+        output_tokens=body.output_tokens,
+    )
+    await session.commit()
+    return QueryCostRecordResponse(
+        id=record.id,
+        query_id=record.query_id,
+        estimated_cost_usd=record.estimated_cost_usd,
+        model_family=record.model_family or normalize_model_family(body.model),
+    )
+
+
+# ── SLO Dashboard Endpoints (US-036 / NFR-008) ──────────────────────────────
+
+@router.get("/slo/dashboard", response_model=SLODashboardResponse)
+async def get_slo_dashboard_endpoint(
+    days: int = Query(30, ge=1, le=90, description="Rolling window in days"),
+    admin_identity: str = Depends(require_admin),
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Admin-only availability SLO dashboard against the 99.5% MVP target."""
+    from backend.app.services.slo_service import get_slo_dashboard
+
+    data = await get_slo_dashboard(session, window_days=days)
+    return SLODashboardResponse(
+        target_pct=data.target_pct,
+        window_days=data.window_days,
+        rolling_availability_pct=data.rolling_availability_pct,
+        total_probes=data.total_probes,
+        successful_probes=data.successful_probes,
+        failed_probes=data.failed_probes,
+        services=data.services,
+        alert_active=data.alert_active,
+        alert_message=data.alert_message,
+        recent_alerts=[AvailabilityAlertItem(**a) for a in data.recent_alerts],
+        daily_uptime=[SLODailyPoint(**d) for d in data.daily_uptime],
+    )
+
+
+@router.post("/slo/probes", response_model=HealthProbeResponse, status_code=status.HTTP_201_CREATED)
+async def record_probe(
+    body: HealthProbeRequest,
+    admin_identity: str = Depends(require_admin),
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Record a health-probe sample used for 30-day rolling availability."""
+    from backend.app.services.slo_service import record_health_probe
+
+    if not body.service_name or not body.service_name.strip():
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="service_name is required",
+        )
+
+    probe = await record_health_probe(
+        session,
+        service_name=body.service_name.strip(),
+        is_healthy=body.is_healthy,
+        latency_ms=body.latency_ms,
+        detail=body.detail,
+    )
+    await session.commit()
+    return HealthProbeResponse(
+        id=probe.id,
+        service_name=probe.service_name,
+        is_healthy=probe.is_healthy,
+        probed_at=probe.probed_at.isoformat() if probe.probed_at else "",
+    )
+
+
+@router.post("/slo/evaluate-alert", response_model=SLOAlertEvaluateResponse)
+async def evaluate_slo_alert(
+    admin_identity: str = Depends(require_admin),
+    session: AsyncSession = Depends(get_db_session),
+):
+    """Evaluate 30-day rolling availability and fire an alert when below 99.5%."""
+    from backend.app.services.slo_service import evaluate_and_alert
+
+    result = await evaluate_and_alert(session)
+    await session.commit()
+    return SLOAlertEvaluateResponse(
+        breached=result["breached"],
+        rolling_availability_pct=result["rolling_availability_pct"],
+        target_pct=result["target_pct"],
+        alert_id=result.get("alert_id"),
+        message=result.get("message"),
+    )
 

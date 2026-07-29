@@ -1,0 +1,16 @@
+{
+  "test": "chaos-github-unavailable",
+  "executed_at": "2026-07-29T22:07:49.559732+00:00",
+  "chaos_flag": "CHAOS_GITHUB_UNAVAILABLE=true",
+  "source_availability_warning": [
+    "github-unavailable"
+  ],
+  "evidence_source_ids": [
+    "src-wiki"
+  ],
+  "github_chunks_excluded": true,
+  "wiki_partial_answer_possible": true,
+  "http_status_simulated": 200,
+  "no_5xx": true,
+  "passed": true
+}

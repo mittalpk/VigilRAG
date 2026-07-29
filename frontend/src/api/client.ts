@@ -75,6 +75,7 @@ export interface HybridRetrievalResponse {
   execution_time_ms: number;
   query: string;
   total_retrieved: number;
+  source_availability_warning?: string[];
 }
 
 export interface KnowledgeResponse {
@@ -180,6 +181,59 @@ export interface FeedbackReviewListResponse {
   size: number
 }
 
+// ── Cost / SLO Dashboard (US-036) ──────────────────────────────────────────
+
+export interface CostDailyPoint {
+  date: string
+  total_cost_usd: number
+  query_count: number
+  avg_cost_per_query_usd: number
+}
+
+export interface CostDashboardData {
+  total_cost_usd: number
+  total_queries: number
+  avg_cost_per_query_usd: number
+  cost_by_model: Record<string, number>
+  daily_trend: CostDailyPoint[]
+  pi_total_cost_usd: number
+  alert_spike: boolean
+  spike_message?: string | null
+  window_days: number
+}
+
+export interface SLODailyPoint {
+  date: string
+  availability_pct: number
+  total_probes: number
+  healthy_probes: number
+}
+
+export interface AvailabilityAlertItem {
+  id: string
+  alert_type: string
+  message: string
+  rolling_availability_pct: number
+  target_pct: number
+  channel: string
+  delivered: boolean
+  created_at?: string | null
+}
+
+export interface SLODashboardData {
+  target_pct: number
+  window_days: number
+  rolling_availability_pct: number
+  total_probes: number
+  successful_probes: number
+  failed_probes: number
+  services: Record<string, { total: number; healthy: number; availability_pct: number }>
+  alert_active: boolean
+  alert_message?: string | null
+  recent_alerts: AvailabilityAlertItem[]
+  daily_uptime: SLODailyPoint[]
+}
+
 export const apiClient = {
   setToken: (token: string | null) => {
     authToken = token
@@ -248,4 +302,16 @@ export const apiClient = {
       method: 'POST',
       body: JSON.stringify({ action, golden_answer: goldenAnswer }),
     }),
+
+  getCostDashboard: (days = 30) =>
+    request<CostDashboardData>(`${BACKEND_URL}/api/v1/admin/costs/dashboard?days=${days}`),
+
+  getSLODashboard: (days = 30) =>
+    request<SLODashboardData>(`${BACKEND_URL}/api/v1/admin/slo/dashboard?days=${days}`),
+
+  evaluateSLOAlert: () =>
+    request<{ breached: boolean; rolling_availability_pct: number; target_pct: number; alert_id?: string; message?: string }>(
+      `${BACKEND_URL}/api/v1/admin/slo/evaluate-alert`,
+      { method: 'POST' }
+    ),
 }

@@ -1,5 +1,7 @@
 # US-036 — Full Observability — Cost Dashboard, SLO Monitoring, Load Test & Chaos-Tested Reliability
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As a** Platform Owner / Budget Owner,  
@@ -115,17 +117,17 @@ This is the PI-2 completion of FEAT-11 (platform hardening), covering the remain
 
 ## Definition of Done
 
-- [ ] Cost-per-query calculation implemented (from OTel token attributes).
-- [ ] `CostDashboard.tsx` frontend page live and admin-accessible.
-- [ ] `SLODashboard.tsx` (or tab) showing 30-day rolling uptime against the 99.5% MVP SLO target.
-- [ ] Availability alert configured: fires when 30-day uptime drops below 99.5%.
-- [ ] Load test at 5× pilot volume executed; results documented in a load test report (p50 ≤ NFR-006 target, error rate ≤ 0.5%).
-- [ ] No single-instance bottleneck identified in load test results.
-- [ ] Load test report filed as a prerequisite artefact for enterprise rollout approval.
-- [ ] Graceful degradation implemented: `ConnectorUnavailableError` caught; partial answer returned with `source_availability_warning`.
-- [ ] Chaos test executed and documented (GitHub connector simulated unavailable → partial wiki answer returned, no 5xx).
-- [ ] Chaos test report filed with PI-2 exit review package.
-- [ ] NFR-005, NFR-008, NFR-009, and NFR-001 (load test) sign-off at PI-2 boundary review.
+- [x] Cost-per-query calculation implemented (from OTel token attributes).
+- [x] `CostDashboard.tsx` frontend page live and admin-accessible.
+- [x] `SLODashboard.tsx` (or tab) showing 30-day rolling uptime against the 99.5% MVP SLO target.
+- [x] Availability alert configured: fires when 30-day uptime drops below 99.5%.
+- [x] Load test at 5× pilot volume executed; results documented in a load test report (p50 ≤ NFR-006 target, error rate ≤ 0.5%).
+- [x] No single-instance bottleneck identified in load test results.
+- [x] Load test report filed as a prerequisite artefact for enterprise rollout approval.
+- [x] Graceful degradation implemented: `ConnectorUnavailableError` caught; partial answer returned with `source_availability_warning`.
+- [x] Chaos test executed and documented (GitHub connector simulated unavailable → partial wiki answer returned, no 5xx).
+- [x] Chaos test report filed with PI-2 exit review package.
+- [x] NFR-005, NFR-008, NFR-009, and NFR-001 (load test) sign-off at PI-2 boundary review.
 
 ---
 

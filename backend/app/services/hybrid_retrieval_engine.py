@@ -7,6 +7,7 @@ Provides:
 - HybridRetrievalEngine executing DB queries against SQLAlchemy models with permission filtering.
 """
 
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Protocol
 import json
 import logging
@@ -21,6 +22,14 @@ from backend.app.schemas import EvidenceItem
 from backend.app.services.ingestion_utils import generate_embedding_vector
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class HybridRetrievalResult:
+    """Retrieval payload including graceful-degradation warnings (US-036)."""
+
+    evidence: List[EvidenceItem] = field(default_factory=list)
+    source_availability_warning: List[str] = field(default_factory=list)
 
 
 class RerankerInterface(Protocol):
@@ -74,11 +83,39 @@ class HybridRetrievalEngine:
         requester_identity: str,
         top_k: int = 5,
     ) -> List[EvidenceItem]:
+        """Backward-compatible wrapper returning only evidence items."""
+        result = await self.retrieve_with_availability(
+            session=session,
+            query=query,
+            requester_identity=requester_identity,
+            top_k=top_k,
+        )
+        return result.evidence
+
+    async def retrieve_with_availability(
+        self,
+        session: AsyncSession,
+        query: str,
+        requester_identity: str,
+        top_k: int = 5,
+    ) -> HybridRetrievalResult:
+        """Hybrid retrieval with connector availability checks (US-036 graceful degradation)."""
         # Require non-empty requester_identity
         if not requester_identity:
-            return []
+            return HybridRetrievalResult()
 
-        """Performs hybrid vector + keyword search and RRF merge."""
+        warnings: List[str] = []
+        try:
+            from backend.app.services.source_availability_service import (
+                evaluate_sources,
+                filter_chunks_by_availability,
+            )
+            availability = await evaluate_sources(session)
+            warnings = list(availability.warnings)
+        except Exception as exc:
+            logger.warning(f"Source availability evaluation failed (continuing): {exc}")
+            availability = None
+
         # 1. Generate query embedding
         query_vector = generate_embedding_vector(query)
 
@@ -104,11 +141,13 @@ class HybridRetrievalEngine:
                 chunks = list(res_fb.scalars().all())
         except Exception as exc:
             logger.warning(f"DB query error (uninitialized DB or table missing): {exc}")
-            return []
+            return HybridRetrievalResult(source_availability_warning=warnings)
 
+        if availability is not None:
+            chunks = filter_chunks_by_availability(chunks, availability)
 
         if not chunks:
-            return []
+            return HybridRetrievalResult(source_availability_warning=warnings)
 
         # 4. Vector Similarity Search (Cosine similarity over candidate set)
         def cosine_similarity(v1: List[float], v2: List[float]) -> float:
@@ -196,4 +235,7 @@ class HybridRetrievalEngine:
         # 7. Apply Reranking hook
         reranked_items = self.reranker.rerank(query, evidence_items)
 
-        return reranked_items[:top_k]
+        return HybridRetrievalResult(
+            evidence=reranked_items[:top_k],
+            source_availability_warning=warnings,
+        )

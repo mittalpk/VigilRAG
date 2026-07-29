@@ -168,12 +168,14 @@ def require_role(allowed_roles: list[str]):
         session: AsyncSession = Depends(get_db_session),
         identity: Optional[str] = None,
     ) -> str:
-        requester_identity = identity or (current_user.get("sub", "anonymous") if current_user else "anonymous")
+        # Check if current_user is a dict or a Depends default object
+        user_dict = current_user if isinstance(current_user, dict) else None
+        requester_identity = identity or (user_dict.get("sub", "anonymous") if user_dict else "anonymous")
 
         # Fast-path: honour roles embedded in the JWT / test-token shortcut
-        jwt_roles: list = (current_user.get("roles") or []) if current_user else []
-        if current_user and isinstance(current_user.get("role"), str):
-            jwt_roles = list(set(jwt_roles + [current_user["role"]]))
+        jwt_roles: list = (user_dict.get("roles") or []) if user_dict else []
+        if user_dict and isinstance(user_dict.get("role"), str):
+            jwt_roles = list(set(jwt_roles + [user_dict["role"]]))
 
         if jwt_roles:
             has_permission = any(r in allowed_roles for r in jwt_roles)

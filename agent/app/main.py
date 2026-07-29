@@ -13,10 +13,11 @@ from .config import settings
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="VigilRAG Agent Service", version="1.0.0")
+from contextlib import asynccontextmanager
 
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Agent service lifespan manager."""
     import hashlib
     # Security startup guards
     internal_key = settings.internal_api_key.get_secret_value()
@@ -24,10 +25,10 @@ async def startup_event():
     if internal_key in ("", "change-me-in-production") or internal_key_hash == "dca9dfae9695e813dfed3443fe447d36059e8f9feb390b7385cf74e0c6a708df":
         raise RuntimeError("INTERNAL_API_KEY is not configured or uses insecure default — refusing to start")
     await http_client.start()
-
-@app.on_event("shutdown")
-async def shutdown_event():
+    yield
     await http_client.stop()
+
+app = FastAPI(title="VigilRAG Agent Service", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

@@ -99,6 +99,10 @@ class GuardrailsClient:
             self.presidio_analyzer = AnalyzerEngine()
             self.presidio_anonymizer = AnonymizerEngine()
             logger.info("Microsoft Presidio PII engines initialized successfully.")
+        except ModuleNotFoundError:
+            # Presidio packages not installed in local environment (e.g. lightweight CI runner); fall back to built-in rule engine
+            self._presidio_unavailable = False
+            logger.info("Presidio NLP packages not installed in environment; using built-in rule engine.")
         except Exception as exc:
             self._presidio_unavailable = True
             logger.error(

@@ -86,6 +86,7 @@ Per [Roadmap §5](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) and [
 - [x] Implement the minimal audit log (FR-008: query, requester identity, evidence used, answer) — includes `guardrail_flags` from 4.5 so guardrail interventions are auditable, not silent (US-018). Completed 2026-07-29.
 - [x] Implement feedback capture (FR-009: thumbs up/down feeding the evaluation dataset built in 4.4) (US-019). Completed 2026-07-29.
 - [x] Implement feedback → evaluation dataset routing (FR-009: negative feedback queue & promotion to golden EvaluationCase) (US-020). Completed 2026-07-29.
+- [x] Perform comprehensive gap analysis & audit reconciliation across all 28 completed stories (US-029). Completed 2026-07-29 (Remediated GAP-F01–F03, GAP-N01–N05, GAP-T03–T04).
 
 ### 4.7 Unified query interface
 

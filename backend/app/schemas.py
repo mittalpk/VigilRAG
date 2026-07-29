@@ -31,6 +31,7 @@ class EvidenceItem(BaseModel):
 class HybridRetrievalResponse(BaseModel):
     evidence: List[EvidenceItem]
     trace_id: str
+    query_id: str  # GAP-F01: Required by feedback capture (US-019) to link ratings to the correct query record
     execution_time_ms: int
     query: str
     total_retrieved: int

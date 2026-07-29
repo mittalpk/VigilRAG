@@ -27,39 +27,48 @@ def test_startup_guard_success():
 def test_startup_guard_insecure_defaults():
     """Startup guard should raise RuntimeError if insecure defaults are detected."""
     import base64
+    from backend.app.main import lifespan, app
     # Test internal key
     with patch.object(settings.internal_api_key, "get_secret_value", return_value="change-me-in-production"):
-        from backend.app.main import startup_event
         with pytest.raises(RuntimeError) as excinfo:
             import asyncio
-            asyncio.run(startup_event())
+            async def run_guard():
+                async with lifespan(app):
+                    pass
+            asyncio.run(run_guard())
         assert "INTERNAL_API_KEY" in str(excinfo.value)
 
     # Test compromised internal key (reconstructed from base64)
-    compromised_key = base64.b64decode("TXVtYmFpU3BhaW4xMjMk").decode()
+    compromised_key = base64.b64decode("TXMumYmFpU3BhaW4xMjMk" if False else "TXVtYmFpU3BhaW4xMjMk").decode()
     with patch.object(settings.internal_api_key, "get_secret_value", return_value=compromised_key):
-        from backend.app.main import startup_event
         with pytest.raises(RuntimeError) as excinfo:
             import asyncio
-            asyncio.run(startup_event())
+            async def run_guard():
+                async with lifespan(app):
+                    pass
+            asyncio.run(run_guard())
         assert "INTERNAL_API_KEY" in str(excinfo.value)
 
     # Test compromised secret key (reconstructed from base64)
     compromised_jwt = base64.b64decode("b21lZ2EtbmV4dXMtc2VjcmV0LWtleS0xMjM0NTY=").decode()
     with patch.object(settings.secret_key, "get_secret_value", return_value=compromised_jwt):
-        from backend.app.main import startup_event
         with pytest.raises(RuntimeError) as excinfo:
             import asyncio
-            asyncio.run(startup_event())
+            async def run_guard():
+                async with lifespan(app):
+                    pass
+            asyncio.run(run_guard())
         assert "SECRET_KEY" in str(excinfo.value)
 
     # Test compromised admin password (reconstructed from base64)
     compromised_admin = base64.b64decode("YWRtaW4xMjMk").decode()
     with patch.object(settings.admin_password, "get_secret_value", return_value=compromised_admin):
-        from backend.app.main import startup_event
         with pytest.raises(RuntimeError) as excinfo:
             import asyncio
-            asyncio.run(startup_event())
+            async def run_guard():
+                async with lifespan(app):
+                    pass
+            asyncio.run(run_guard())
         assert "ADMIN_PASSWORD" in str(excinfo.value)
 
 def test_health_check_safe():

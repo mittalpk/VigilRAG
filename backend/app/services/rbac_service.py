@@ -17,7 +17,7 @@ from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models import Role, User, UserRole
+from backend.app.models import QueryRecord, Role, User, UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -143,4 +143,22 @@ async def assign_user_role(
         await session.commit()
 
     logger.info(f"Assigned role '{role_id}' to user '{target_username}' by '{assigned_by}'.")
+
+    # GAP-N02: Persist structured role-assignment audit record so compliance reviewers
+    # can query who granted which roles to whom from the audit DB (FR-008 / NFR-002).
+    try:
+        audit_id = f"qry-role-{uuid.uuid4().hex[:10]}"
+        audit_record = QueryRecord(
+            id=audit_id,
+            requester_identity=assigned_by,
+            query_text=f"ROLE_ASSIGNMENT: role='{role_id}' granted to user='{target_username}' by='{assigned_by}'",
+            trace_id=f"rbac-{uuid.uuid4().hex[:10]}",
+        )
+        session.add(audit_record)
+        await session.commit()
+        logger.debug(f"Role assignment audit record persisted: {audit_id}")
+    except Exception as exc:
+        # Non-fatal: log audit failure but do not roll back the role assignment
+        logger.error(f"Failed to persist role assignment audit record: {exc}")
+
     return True

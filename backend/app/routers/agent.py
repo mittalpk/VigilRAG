@@ -2,11 +2,12 @@
 import os
 import logging
 import httpx
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from pydantic import BaseModel, Field
 from typing import List, Optional, Any
 from ..config import settings
 from ..client import http_client
+from ..auth import get_current_user, require_role
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -36,8 +37,16 @@ class AgentTaskResponse(BaseModel):
     steps: List[str] = Field(default_factory=list)
 
 
+# GAP-F03: viewer role cannot run agent tasks (US-016 RBAC requirement)
+_require_agent_role = require_role(["admin", "user"])
+
+
 @router.post("/run", response_model=AgentTaskResponse)
-async def run_agent_task(body: AgentTaskRequest = Body(...)):
+async def run_agent_task(
+    body: AgentTaskRequest = Body(...),
+    current_user: dict = Depends(get_current_user),
+    _role_check: None = Depends(_require_agent_role),
+):
     """Proxy the task to the LangGraph agent service and return its result."""
     try:
         logger.info(f"Running agent task: {body.task[:100]}... via {AGENT_SERVICE_URL}/run")

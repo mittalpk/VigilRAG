@@ -71,6 +71,7 @@ export interface EvidenceItem {
 export interface HybridRetrievalResponse {
   evidence: EvidenceItem[];
   trace_id: string;
+  query_id: string;  // GAP-F01: required for feedback submission (US-019)
   execution_time_ms: number;
   query: string;
   total_retrieved: number;
@@ -83,6 +84,7 @@ export interface KnowledgeResponse {
   execution_time_ms: number;
   evidence?: EvidenceItem[];
   trace_id?: string;
+  query_id?: string;  // GAP-F01: populated from HybridRetrievalResponse for feedback submission
 }
 
 export interface EvaluationRunItem {

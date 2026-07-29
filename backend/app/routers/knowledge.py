@@ -14,7 +14,7 @@ from typing import Optional
 from fastapi import APIRouter, Body, Depends, Header
 from fastapi.responses import JSONResponse
 
-from backend.app.auth import get_current_user
+from backend.app.auth import get_current_user, require_role
 from backend.app.models import AsyncSessionLocal
 from backend.app.schemas import HybridRetrievalResponse, KnowledgeQueryRequest
 from backend.app.services.hybrid_retrieval_engine import HybridRetrievalEngine
@@ -26,10 +26,15 @@ logger = logging.getLogger(__name__)
 retrieval_engine = HybridRetrievalEngine()
 
 
+# GAP-F03: viewer role cannot submit new queries (US-016 RBAC requirement)
+_require_query_role = require_role(["admin", "user"])
+
+
 @router.post("/query", response_model=HybridRetrievalResponse)
 async def query_knowledge(
     body: KnowledgeQueryRequest = Body(...),
     current_user: dict = Depends(get_current_user),
+    _role_check: None = Depends(_require_query_role),
     x_trace_id: Optional[str] = Header(None, alias="X-Trace-ID"),
 ):
     start_time = datetime.datetime.now()
@@ -54,10 +59,13 @@ async def query_knowledge(
                 top_k=body.top_k,
             )
 
+            # GAP-F01: Assign query_id before the try block so it is always available for the response.
+            # This ensures the frontend can use query_id (not trace_id) for feedback submission.
+            query_id = f"qry-{uuid.uuid4().hex[:12]}"
+
             # Persist Query and Evidence audit records for provenance tracking (US-013)
             try:
                 ev_dicts = [ev.model_dump() for ev in evidence]
-                query_id = f"qry-{uuid.uuid4().hex[:12]}"
                 from backend.app.services.groundedness_service import persist_query_evidence_answer
                 await persist_query_evidence_answer(
                     session=session,
@@ -76,6 +84,7 @@ async def query_knowledge(
     response = HybridRetrievalResponse(
         evidence=evidence,
         trace_id=trace_id,
+        query_id=query_id,  # GAP-F01: expose query_id for feedback capture (US-019)
         execution_time_ms=exec_time_ms,
         query=body.query,
         total_retrieved=len(evidence),

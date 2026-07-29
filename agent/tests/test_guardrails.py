@@ -1,11 +1,11 @@
 """
-Unit and Integration Tests for US-024 & US-025 Guardrails.
+Unit and Integration Tests for US-024, US-025 & US-026 Guardrails.
 """
 
 import pytest
 import unittest.mock as mock
 
-from agent.app.guardrails import GuardrailsClient, GuardrailsResult, ValidationResult
+from agent.app.guardrails import GuardrailsClient, GuardrailsResult, ValidationResult, RedactionResult
 
 
 @pytest.fixture
@@ -146,7 +146,6 @@ def test_validate_output_schema_invalid_missing_field(guardrails):
     response = {
         "answer": "Valid text but missing citations list.",
         "trace_id": "trc-schema-02",
-        # missing execution_time_ms
     }
     res = guardrails.validate_output(response, trace_id="trc-schema-02")
     assert not res.valid
@@ -179,3 +178,33 @@ def test_validate_output_safety_check_failed_injection_echo(guardrails):
     res = guardrails.validate_output(response, trace_id="trc-echo-01")
     assert not res.valid
     assert res.reason == "safety-check-failed"
+
+
+# ── US-026 Presidio PII Redaction Tests ──────────────────────────────────────
+
+def test_pii_redaction_email_phone_person(guardrails):
+    text = "Contact Alice Smith at alice@example.com or 555-019-2831 for support."
+    res = guardrails.pii_redact(text, trace_id="trc-pii-01")
+    assert "[REDACTED-EMAIL]" in res.redacted_text
+    assert "[REDACTED-PHONE]" in res.redacted_text
+    assert "[REDACTED-PERSON]" in res.redacted_text
+    assert "alice@example.com" not in res.redacted_text
+    assert "pii-redacted:EMAIL" in res.guardrail_flags
+    assert "pii-redacted:PHONE" in res.guardrail_flags
+    assert "pii-redacted:PERSON" in res.guardrail_flags
+
+
+def test_pii_redaction_code_identifier_false_positive(guardrails):
+    text = "Use CSS color token AliceBlue or code variable JohnDoeVar."
+    res = guardrails.pii_redact(text, trace_id="trc-pii-02")
+    assert "AliceBlue" in res.redacted_text
+    assert "JohnDoeVar" in res.redacted_text
+    assert "pii-redacted:PERSON" not in res.guardrail_flags
+
+
+def test_pii_redaction_entire_answer(guardrails):
+    text = "jane.smith@corporation.com"
+    res = guardrails.pii_redact(text, trace_id="trc-pii-03")
+    assert res.redacted_text == "[REDACTED-EMAIL]"
+    assert "pii-redacted:EMAIL" in res.guardrail_flags
+    assert "pii-redacted:ALL" in res.guardrail_flags

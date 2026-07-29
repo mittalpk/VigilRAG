@@ -4,6 +4,7 @@ WORKDIR /build
 RUN pip install --upgrade pip
 COPY requirements.txt .
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+RUN python -m spacy download en_core_web_sm || true
 
 # ─── Stage 2: Production Image ───────────────────────────────────────────────
 FROM python:3.12-slim

@@ -1,5 +1,5 @@
 """
-Unit and Integration Tests for Agent Query API Router (US-011 / US-024 / US-025).
+Unit and Integration Tests for Agent Query API Router (US-011 / US-024 / US-025 / US-026).
 Tests:
 - POST /api/v1/query success flow with citation assembly.
 - 401 Unauthorized on missing/empty requester_identity.
@@ -8,6 +8,7 @@ Tests:
 - 503 Service Unavailable handling on backend error or timeout.
 - Prompt Injection Defense (US-024) scanning & guardrail flags.
 - Output Validation Check (US-025) schema invalid and safety check failure handling.
+- Presidio PII Redaction Check (US-026) answer-out redaction and guardrail flags.
 - Fail-closed handling when guardrail service is unavailable.
 """
 
@@ -314,3 +315,39 @@ def test_query_endpoint_output_validation_safety_failed():
 
             assert response.status_code == 503
             assert "Output validation failed: safety-check-failed" in response.json()["detail"]
+
+
+# ── US-026 Presidio PII Redaction Endpoint Tests ──────────────────────────────
+
+def test_query_endpoint_pii_redaction():
+    """POST /api/v1/query should redact PII in synthesized answer and add guardrail flags (US-026)."""
+    mock_kb_response = MagicMock()
+    mock_kb_response.status_code = 200
+    mock_kb_response.json.return_value = {
+        "evidence": [
+            {
+                "chunk_id": "chk-pii-01",
+                "content": "Support contact is Alice Smith at alice@company.org or 555-019-2831.",
+            }
+        ]
+    }
+
+    mock_async_client = AsyncMock()
+    mock_async_client.post.return_value = mock_kb_response
+
+    with patch("agent.app.client.http_client.get_client", return_value=mock_async_client):
+        response = client.post(
+            "/api/v1/query",
+            headers={"X-Internal-API-Key": TEST_KEY},
+            json={
+                "query": "Who is support contact?",
+                "requester_identity": "bob@company.org",
+                "top_k": 5,
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "[REDACTED-EMAIL]" in data["answer"]
+        assert "alice@company.org" not in data["answer"]
+        assert any(flag.startswith("pii-redacted:") for flag in data["guardrail_flags"])

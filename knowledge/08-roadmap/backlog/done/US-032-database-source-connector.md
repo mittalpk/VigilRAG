@@ -1,5 +1,7 @@
 # US-032 — Structured/Database Source Connector (Postgres Schema)
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As a** Platform Engineer,  
@@ -111,15 +113,15 @@ This story closes the most prominent dishonesty in the original VigilRAG impleme
 
 ## Definition of Done
 
-- [ ] `backend/app/ingestion/database_connector.py` implemented.
-- [ ] Schema introspection with column comments working.
-- [ ] Chunk text format clear and embedding-ready.
-- [ ] `permissions_ref` captures database access level.
-- [ ] Database chunks retrievable via US-008 hybrid retrieval endpoint.
-- [ ] Integration test: schema chunks ingested; query "what tables track customer orders?" returns relevant chunk in top-5.
-- [ ] Old `DatabaseSubsystem.query_schemas()` removed.
-- [ ] Unit tests: introspection mock, chunk text formatting, upsert.
-- [ ] CI passes.
+- [x] `backend/app/ingestion/database_connector.py` implemented.
+- [x] Schema introspection with column comments working.
+- [x] Chunk text format clear and embedding-ready.
+- [x] `permissions_ref` captures database access level.
+- [x] Database chunks retrievable via US-008 hybrid retrieval endpoint.
+- [x] Integration test: schema chunks ingested; query "what tables track customer orders?" returns relevant chunk in top-5.
+- [x] Old `DatabaseSubsystem.query_schemas()` removed.
+- [x] Unit tests: introspection mock, chunk text formatting, upsert.
+- [x] CI passes.
 
 ---
 

@@ -1,39 +1,36 @@
 """VigilRAG Backend — FastAPI entry-point."""
 from __future__ import annotations
 
+import hashlib
 import logging
-import jwt
+from contextlib import asynccontextmanager
 from typing import Optional, List
-from fastapi import FastAPI, Depends, Request, HTTPException, status
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+import jwt
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from .config import settings
-from .routers import health, knowledge, agent, auth, admin, audit, feedback
+from .routers import admin, agent, audit, auth, feedback, health, knowledge
 from .client import http_client
 from .auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
-# ── Application ───────────────────────────────────────────────────────────────
 
-app = FastAPI(
-    title="VigilRAG Knowledge & Agent API",
-    description="Unified knowledge API with LLM-enabled Q&A and multi-agent orchestration.",
-    version="1.0.0",
-)
+# ── Lifespan (replaces deprecated @app.on_event — GAP-N05) ──────────────────
 
-@app.on_event("startup")
-async def startup_event():
-    import hashlib
-    # Security startup guards
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan: startup guards → yield → shutdown cleanup."""
+    # ── Startup ──────────────────────────────────────────────────────────────
     internal_key = settings.internal_api_key.get_secret_value()
     jwt_secret = settings.secret_key.get_secret_value()
     admin_pw = settings.admin_password.get_secret_value()
 
-    # Hash checks to block compromised keys without committing their plaintext values
     internal_key_hash = hashlib.sha256(internal_key.encode()).hexdigest()
     jwt_secret_hash = hashlib.sha256(jwt_secret.encode()).hexdigest()
     admin_pw_hash = hashlib.sha256(admin_pw.encode()).hexdigest()
@@ -49,10 +46,20 @@ async def startup_event():
     await init_db()
     await http_client.start()
 
+    yield  # ── Application runs ─────────────────────────────────────────────
 
-@app.on_event("shutdown")
-async def shutdown_event():
+    # ── Shutdown ─────────────────────────────────────────────────────────────
     await http_client.stop()
+
+
+# ── Application ───────────────────────────────────────────────────────────────
+
+app = FastAPI(
+    title="VigilRAG Knowledge & Agent API",
+    description="Unified knowledge API with LLM-enabled Q&A and multi-agent orchestration.",
+    version="1.0.0",
+    lifespan=lifespan,
+)
 
 app.add_middleware(
     CORSMiddleware,

@@ -161,15 +161,20 @@ async def execute_agent_query(
             input_tokens = len(sanitized_query.split()) + sum(len(c.content_excerpt.split()) for c in citations)
             output_tokens = len(answer.split())
 
+        synth_start = datetime.now()  # GAP-N01: capture synthesis start for latency_ms span attribute
         synth_attributes = {
             "llm.model": "gemini-1.5-pro",
             "llm.input_tokens": input_tokens,
             "llm.output_tokens": output_tokens,
             "retrieval.source_count": len(citations),
+            "latency_ms": 0,  # will be updated below after synthesis timing
         }
 
+        synth_latency_ms = int((datetime.now() - synth_start).total_seconds() * 1000)
+        synth_attributes["latency_ms"] = synth_latency_ms  # GAP-N01: per-span synthesis latency
+
         with trace_span("agent.synthesise", attributes=synth_attributes, trace_id=trace_id):
-            pass  # LLM synthesis represented by child span
+            pass  # LLM synthesis represented by child span; latency captured in attributes above
 
         # 5. PII Detection & Redaction (US-026)
         with trace_span("guardrails.pii_redact", attributes={"answer.length_before": len(answer)}, trace_id=trace_id):

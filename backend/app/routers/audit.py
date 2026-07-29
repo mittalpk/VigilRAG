@@ -16,7 +16,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.auth import require_admin
-from backend.app.models import AnswerRecord, EvidenceItemRecord, QueryRecord, get_db_session
+from backend.app.models import AnswerRecord, Chunk, EvidenceItemRecord, QueryRecord, get_db_session
 from backend.app.schemas import (
     AuditEvidenceItem,
     AuditQueryDetailResponse,
@@ -154,11 +154,25 @@ async def get_audit_query_detail(
     ev_res = await session.execute(ev_stmt)
     ev_recs = ev_res.scalars().all()
 
+    # GAP-F02: Look up real chunk text for content_excerpt rather than returning a placeholder.
+    # Build a chunk_id -> content map from the Chunk table for all evidence item chunk IDs.
+    chunk_ids = [ev.chunk_id for ev in ev_recs]
+    chunk_content_map: dict = {}
+    if chunk_ids:
+        try:
+            ch_stmt = select(Chunk.id, Chunk.content).where(Chunk.id.in_(chunk_ids))
+            ch_res = await session.execute(ch_stmt)
+            for row in ch_res.fetchall():
+                chunk_content_map[row[0]] = row[1]
+        except Exception as exc:
+            logger.warning(f"Could not load chunk content for audit detail: {exc}")
+
     evidence_items = [
         AuditEvidenceItem(
             id=ev.id,
             chunk_id=ev.chunk_id,
-            content_excerpt=f"Content excerpt for chunk {ev.chunk_id}",
+            # Return first 500 chars of real chunk text; fall back to empty string if chunk deleted
+            content_excerpt=(chunk_content_map.get(ev.chunk_id, "") or "")[:500],
             source_url=ev.source_url,
             relevance_score=ev.relevance_score,
             used_in_answer=ev.used_in_answer,

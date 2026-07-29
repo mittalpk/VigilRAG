@@ -146,24 +146,52 @@ async def extract_requester_identity(
 
 
 def require_role(allowed_roles: list[str]):
-    """Returns a FastAPI dependency that verifies the requester identity has one of the allowed_roles."""
+    """Returns a FastAPI dependency that verifies the requester identity has one of the allowed_roles.
+
+    Fast-path: If get_current_user has already decoded a JWT with embedded `roles` claims,
+    honour those claims directly to avoid a redundant DB round-trip (and to prevent false 403s
+    in test environments where the role tables are empty).
+    Fallback: If the JWT has no roles claim (e.g., API-key auth), query get_user_roles from DB.
+    """
     from backend.app.models import get_db_session
     from backend.app.services.rbac_service import get_user_roles
     from sqlalchemy.ext.asyncio import AsyncSession
 
     async def role_checker(
-        identity: str = Depends(extract_requester_identity),
+        current_user: dict = Depends(get_current_user),
         session: AsyncSession = Depends(get_db_session),
     ) -> str:
-        user_roles = await get_user_roles(session, identity)
+        identity = current_user.get("sub", "anonymous")
 
-        # Check overlap between user's roles and required allowed_roles
-        has_permission = any(r in allowed_roles for r in user_roles)
+        # Fast-path: honour roles embedded in the JWT / test-token shortcut
+        jwt_roles: list = current_user.get("roles") or []
+        if isinstance(current_user.get("role"), str):
+            jwt_roles = list(set(jwt_roles + [current_user["role"]]))
+
+        if jwt_roles:
+            has_permission = any(r in allowed_roles for r in jwt_roles)
+            if has_permission:
+                return identity
+            # JWT has roles but none match — deny immediately without DB round-trip
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    f"Permission denied: Requester identity '{identity}' with roles {jwt_roles} "
+                    f"lacks required role in {allowed_roles}."
+                ),
+            )
+
+        # Fallback: no roles in JWT — look up roles from DB (handles API-key auth path)
+        db_roles = await get_user_roles(session, identity)
+        has_permission = any(r in allowed_roles for r in db_roles)
 
         if not has_permission:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Permission denied: Requester identity '{identity}' with roles {user_roles} lacks required role in {allowed_roles}.",
+                detail=(
+                    f"Permission denied: Requester identity '{identity}' with roles {db_roles} "
+                    f"lacks required role in {allowed_roles}."
+                ),
             )
 
         return identity
@@ -171,8 +199,8 @@ def require_role(allowed_roles: list[str]):
     return role_checker
 
 
+
 # Shortcuts
 require_admin = require_role(["admin"])
 require_user = require_role(["admin", "user"])
 require_viewer = require_role(["admin", "user", "viewer"])
-

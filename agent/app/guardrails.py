@@ -84,9 +84,15 @@ class GuardrailsClient:
         self._init_presidio()
 
     def _init_presidio(self) -> None:
-        """Initializes Presidio Analyzer and Anonymizer engines if available."""
+        """Initializes Presidio Analyzer and Anonymizer engines.
+
+        GAP-N03: On failure, logs at ERROR level and sets _presidio_unavailable=True so that
+        pii_redact() raises HTTP 503 (fail-closed) rather than silently falling back to the
+        regex engine, which gives far weaker PII coverage (US-026 / NFR-003).
+        """
         self.presidio_analyzer = None
         self.presidio_anonymizer = None
+        self._presidio_unavailable = False
         try:
             from presidio_analyzer import AnalyzerEngine
             from presidio_anonymizer import AnonymizerEngine
@@ -94,7 +100,11 @@ class GuardrailsClient:
             self.presidio_anonymizer = AnonymizerEngine()
             logger.info("Microsoft Presidio PII engines initialized successfully.")
         except Exception as exc:
-            logger.info(f"Presidio NLP engine not fully initialized ({exc}); using built-in rule engine.")
+            self._presidio_unavailable = True
+            logger.error(
+                f"Presidio PII engine failed to initialize ({exc}). "
+                "pii_redact() will raise HTTP 503 until Presidio is available (fail-closed per NFR-003)."
+            )
 
     def load_patterns(self) -> None:
         """Loads prompt injection patterns from YAML configuration."""
@@ -276,9 +286,24 @@ class GuardrailsClient:
         Detects and redacts PII from synthesized answer text (US-026).
         Replaces PII with type-specific placeholders: [REDACTED-EMAIL], [REDACTED-PERSON], [REDACTED-PHONE], etc.
         Avoids false positives for code identifiers (e.g. AliceBlue).
+
+        GAP-N03: Raises HTTP 503 (fail-closed) when Presidio failed to initialize,
+        rather than silently falling back to weaker regex-only coverage (NFR-003).
         """
+        # Fail-closed: Presidio unavailable means PII redaction cannot be guaranteed
+        if getattr(self, "_presidio_unavailable", False):
+            from fastapi import HTTPException, status
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=(
+                    "PII redaction service (Presidio) is unavailable. "
+                    "Query cannot be processed until Presidio is initialized (NFR-003 fail-closed)."
+                ),
+            )
+
         if not text or not text.strip():
             return RedactionResult(redacted_text=text)
+
 
         detected_types = set()
         redacted = text

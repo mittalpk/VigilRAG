@@ -97,10 +97,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r agent/requirements.txt
-          pip install pytest
+          pip install pytest pytest-asyncio
+          # GAP-T03: Download spaCy NLP model required by Presidio for full PII coverage (US-026 / NFR-003)
+          python -m spacy download en_core_web_lg || echo "spaCy model download failed — Presidio will use fallback engine"
 
       - name: Run agent tests
-        run: python -m pytest agent/tests -v
+        run: PYTHONPATH=. python -m pytest agent/tests -v
 
   guardrails-test:
     needs: filter
@@ -122,6 +124,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r agent/requirements.txt
           pip install pytest pytest-asyncio
+          # GAP-T03: Download spaCy NLP model required by Presidio for full PII coverage (US-026 / NFR-003)
+          python -m spacy download en_core_web_lg || echo "spaCy model download failed — Presidio will use fallback engine"
 
       - name: Run guardrails fixture test suite
         run: PYTHONPATH=. python -m pytest agent/tests/test_guardrails_fixtures.py -v

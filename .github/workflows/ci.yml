@@ -179,3 +179,13 @@ jobs:
 
       - name: Run RAGAS evaluation quality gate
         run: PYTHONPATH=. python scripts/run_evaluation.py --mode ci --fail-on-regression
+
+      - name: Publish Model/System Card
+        if: github.ref == 'refs/heads/main'
+        run: |
+          PYTHONPATH=. python scripts/publish_model_card.py --version ${{ github.sha }}
+          git config user.name "VigilRAG CI"
+          git config user.email "ci@vigilrag.internal"
+          git add knowledge/model-cards/
+          git commit -m "ci: publish model card for ${{ github.sha }}" || echo "No changes to commit"
+          git push || echo "Push skipped or unauthenticated in PR run"

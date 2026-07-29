@@ -1,5 +1,7 @@
 # US-034 — Model / System Card Publication
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As an** AI Solutions Architect / Compliance Officer,  
@@ -91,16 +93,16 @@ This story implements FR-013: a CI-triggered process that, on merge to `main`, g
 
 ## Definition of Done
 
-- [ ] `scripts/publish_model_card.py` implemented with Jinja2 template.
-- [ ] Card published to `knowledge/model-cards/v<sha>-card.md` on `main` merge.
-- [ ] Card scores match the `EvaluationRun` record for the same version (verified by CI).
-- [ ] Card template includes a real (not placeholder) Governance Framework Mapping section (NIST AI RMF or ISO/IEC 42001 function-area mapping).
-- [ ] CI step added to `ci.yml` (runs after evaluation gate, on `main` only).
-- [ ] `GET /api/v1/model-cards/latest` endpoint implemented and admin-only.
-- [ ] Acceptance check: reviewer can locate any production release's card from `knowledge/model-cards/` without engineering help.
-- [ ] First annual governance framework mapping review scheduled as a recurring calendar event (AI Solutions Architect + Compliance Officer).
-- [ ] Unit tests: card generation from a mock `EvaluationRun` record.
-- [ ] CI passes.
+- [x] `scripts/publish_model_card.py` implemented with Jinja2 template.
+- [x] Card published to `knowledge/model-cards/v<sha>-card.md` on `main` merge.
+- [x] Card scores match the `EvaluationRun` record for the same version (verified by CI).
+- [x] Card template includes a real (not placeholder) Governance Framework Mapping section (NIST AI RMF or ISO/IEC 42001 function-area mapping).
+- [x] CI step added to `ci.yml` (runs after evaluation gate, on `main` only).
+- [x] `GET /api/v1/model-cards/latest` endpoint implemented and admin-only.
+- [x] Acceptance check: reviewer can locate any production release's card from `knowledge/model-cards/` without engineering help.
+- [x] First annual governance framework mapping review scheduled as a recurring calendar event (AI Solutions Architect + Compliance Officer).
+- [x] Unit tests: card generation from a mock `EvaluationRun` record.
+- [x] CI passes.
 
 ---
 

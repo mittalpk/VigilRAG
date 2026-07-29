@@ -30,7 +30,7 @@ resource "azurerm_virtual_network" "nexus_vnet" {
   depends_on = [azurerm_resource_group.nexus]
 }
 
-# Subnet dedicated and delegated to Azure Container Instances
+# Subnet dedicated and delegated to Azure Container Apps / Instances
 resource "azurerm_subnet" "aci_subnet" {
   name                 = var.snet_aci_name
   resource_group_name  = azurerm_resource_group.nexus.name
@@ -40,11 +40,11 @@ resource "azurerm_subnet" "aci_subnet" {
   depends_on = [azurerm_virtual_network.nexus_vnet]
 
   delegation {
-    name = "aciDelegation"
+    name = "containerAppDelegation"
 
     service_delegation {
-      name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
+      name    = "Microsoft.App/managedEnvironments"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
 }

@@ -1,10 +1,8 @@
 """
-Hybrid Retrieval & Evidence Types (US-008).
+Hybrid Retrieval, Evidence Types & Audit Schemas (US-008 / US-018 / US-022).
 
-Defines Pydantic models and schemas for hybrid retrieval query requests and responses:
-- KnowledgeQueryRequest
-- EvidenceItem
-- HybridRetrievalResponse
+Defines Pydantic models and schemas for hybrid retrieval query requests and responses,
+evaluation run persistence, and audit logging.
 """
 
 from typing import Any, Dict, List, Optional
@@ -57,3 +55,38 @@ class EvaluationRunListResponse(BaseModel):
     total: int
     page: int
     size: int
+
+
+# ── Audit Log Schemas (US-018) ──────────────────────────────────────────────
+
+class AuditEvidenceItem(BaseModel):
+    id: Optional[str] = None
+    chunk_id: str
+    content_excerpt: str
+    source_url: Optional[str] = None
+    relevance_score: Optional[float] = None
+    used_in_answer: bool = True
+    permission_denied: bool = False
+
+
+class AuditQueryItem(BaseModel):
+    query_id: str
+    requester_identity: str
+    text: str
+    timestamp: str
+    answer_text: Optional[str] = None
+    citations: List[Dict[str, Any]] = Field(default_factory=list)
+    groundedness_score: Optional[float] = None
+    guardrail_flags: List[str] = Field(default_factory=list)
+
+
+class AuditQueryListResponse(BaseModel):
+    items: List[AuditQueryItem]
+    total: int
+    page: int
+    per_page: int
+
+
+class AuditQueryDetailResponse(AuditQueryItem):
+    evidence_items: List[AuditEvidenceItem] = Field(default_factory=list)
+    truncated: bool = False

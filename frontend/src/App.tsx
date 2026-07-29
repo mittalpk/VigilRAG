@@ -81,12 +81,13 @@ const AgentAnimation = () => (
 );
 
 import EvaluationDashboard from './EvaluationDashboard'
+import AuditLog from './pages/AuditLog'
 
 export default function App() {
   useEffect(() => {
     console.log('🚀 VigilRAG Production UI loaded correctly. Version: 1.0.1 (Final)');
   }, [])
-  const [activeTab, setActiveTab] = useState<'knowledge' | 'agent' | 'evaluation' | 'documentation'>('knowledge')
+  const [activeTab, setActiveTab] = useState<'knowledge' | 'agent' | 'evaluation' | 'audit' | 'documentation'>('knowledge')
 
   // Knowledge State
   const [query, setQuery] = useState('')
@@ -249,6 +250,13 @@ export default function App() {
             onClick={() => setActiveTab('evaluation')}
           >
             Evaluation Dashboard
+          </button>
+          <button
+            id="tab-audit"
+            className={`tab ${activeTab === 'audit' ? 'active' : ''}`}
+            onClick={() => setActiveTab('audit')}
+          >
+            Audit Log
           </button>
           <button
             id="tab-documentation"
@@ -484,6 +492,12 @@ export default function App() {
         {activeTab === 'evaluation' && (
           <div className="tab-content fade-in">
             <EvaluationDashboard />
+          </div>
+        )}
+
+        {activeTab === 'audit' && (
+          <div className="tab-content fade-in">
+            <AuditLog />
           </div>
         )}
 

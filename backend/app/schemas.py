@@ -141,6 +141,62 @@ class FeedbackReviewItemResponse(BaseModel):
 class FeedbackReviewListResponse(BaseModel):
     items: List[FeedbackReviewItemResponse]
     total: int
+
+
+# ── Source Registration Schemas (US-031) ───────────────────────────────────
+
+class SourceTypeInfo(BaseModel):
+    type_id: str
+    display_name: str
+    description: str
+    supported: bool = True
+
+
+class SourceCreateRequest(BaseModel):
+    name: str = Field(..., max_length=255, description="Display name for the source")
+    source_type: str = Field(..., description="Source connector type (github_repo, confluence_wiki, database_schema)")
+    endpoint_url: str = Field(..., description="Connection reference / repository URL")
+    secret_reference: str = Field(..., description="Key Vault secret reference name (not raw credential)")
+    owner_email: str = Field(..., description="Owner email for ACL and notifications")
+    sensitivity_level: str = Field("internal-general", description="Sensitivity classification: public, internal-general, confidential, restricted")
+    sensitivity_signed_off: bool = Field(False, description="Whether sensitivity classification has been signed off")
+    refresh_cadence_minutes: int = Field(1440, ge=15, description="Refresh cadence in minutes (default 1440 = 24 hours)")
+    indexing_scope: Optional[str] = Field("*", description="Path filter / glob scope for indexing")
+
+
+class SourceUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    endpoint_url: Optional[str] = None
+    secret_reference: Optional[str] = None
+    owner_email: Optional[str] = None
+    sensitivity_level: Optional[str] = None
+    sensitivity_signed_off: Optional[bool] = None
+    refresh_cadence_minutes: Optional[int] = None
+    indexing_scope: Optional[str] = None
+    is_active: Optional[bool] = None
+
+
+class SourceResponse(BaseModel):
+    id: str
+    name: str
+    source_type: str
+    endpoint_url: str
+    secret_reference: str
+    owner_email: str
+    sensitivity_level: str
+    sensitivity_signed_off: bool
+    refresh_cadence_minutes: int
+    status: str
+    indexing_scope: Optional[str] = "*"
+    is_active: bool
+    created_at: str
+    updated_at: str
+    last_indexed_at: Optional[str] = None
+
+
+class SourceListResponse(BaseModel):
+    items: List[SourceResponse]
+    total: int
     page: int
     size: int
 

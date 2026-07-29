@@ -84,12 +84,13 @@ import EvaluationDashboard from './EvaluationDashboard'
 import AuditLog from './pages/AuditLog'
 import FeedbackBar from './FeedbackBar'
 import FeedbackReview from './pages/FeedbackReview'
+import SourceManagement from './SourceManagement'
 
 export default function App() {
   useEffect(() => {
     console.log('🚀 VigilRAG Production UI loaded correctly. Version: 1.0.1 (Final)');
   }, [])
-  const [activeTab, setActiveTab] = useState<'knowledge' | 'agent' | 'evaluation' | 'audit' | 'feedback-review' | 'documentation'>('knowledge')
+  const [activeTab, setActiveTab] = useState<'knowledge' | 'agent' | 'evaluation' | 'audit' | 'feedback-review' | 'sources' | 'documentation'>('knowledge')
 
   // Knowledge State
   const [query, setQuery] = useState('')
@@ -251,7 +252,21 @@ export default function App() {
             className={`tab ${activeTab === 'evaluation' ? 'active' : ''}`}
             onClick={() => setActiveTab('evaluation')}
           >
-            Evaluation Dashboard
+            Evaluation Harness
+          </button>
+          <button
+            id="tab-feedback"
+            className={`tab ${activeTab === 'feedback-review' ? 'active' : ''}`}
+            onClick={() => setActiveTab('feedback-review')}
+          >
+            Feedback Queue
+          </button>
+          <button
+            id="tab-sources"
+            className={`tab ${activeTab === 'sources' ? 'active' : ''}`}
+            onClick={() => setActiveTab('sources')}
+          >
+            Source Management
           </button>
           <button
             id="tab-audit"
@@ -515,6 +530,12 @@ export default function App() {
         {activeTab === 'feedback-review' && (
           <div className="tab-content fade-in">
             <FeedbackReview />
+          </div>
+        )}
+
+        {activeTab === 'sources' && (
+          <div className="tab-content fade-in">
+            <SourceManagement />
           </div>
         )}
 

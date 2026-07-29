@@ -73,6 +73,9 @@ class Source(Base):
     sensitivity_level = Column(String(50), nullable=False, default="internal-general")
     sensitivity_signed_off = Column(Boolean, nullable=False, default=False)
     refresh_cadence_minutes = Column(Integer, nullable=False, default=1440)
+    status = Column(String(50), nullable=False, default="pending_first_index")  # pending_first_index, indexing, indexed, error, inactive
+    indexing_scope = Column(Text, nullable=True, default="*")
+    is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now(), nullable=False)
     last_indexed_at = Column(DateTime(timezone=True), nullable=True)

@@ -1,5 +1,5 @@
 """
-VigilRAG Agent Service Guardrails Module for US-024 / US-025 / US-026.
+VigilRAG Agent Service Guardrails Module for US-024 / US-025 / US-026 / US-027.
 Provides Prompt-Injection Defense scanning on retrieved content (evidence-in), user query input,
 output validation (answer-out structural and safety schema checks), and PII detection/redaction (Microsoft Presidio integration).
 """
@@ -291,18 +291,20 @@ class GuardrailsClient:
                 operators = {}
                 for res in results:
                     entity_type = res.entity_type
+                    entity_text = text[res.start:res.end]
                     if entity_type == "EMAIL_ADDRESS":
                         detected_types.add("EMAIL")
                         operators["EMAIL_ADDRESS"] = OperatorConfig("replace", {"new_value": "[REDACTED-EMAIL]"})
                     elif entity_type == "PERSON":
                         # Check false positive code identifier
-                        entity_text = text[res.start:res.end]
                         if entity_text not in ("AliceBlue", "BobCode", "JohnDoeVar"):
                             detected_types.add("PERSON")
                             operators["PERSON"] = OperatorConfig("replace", {"new_value": "[REDACTED-PERSON]"})
                     elif entity_type == "PHONE_NUMBER":
-                        detected_types.add("PHONE")
-                        operators["PHONE_NUMBER"] = OperatorConfig("replace", {"new_value": "[REDACTED-PHONE]"})
+                        # Ensure entity_text is not an IP address (e.g. 192.168.1.100)
+                        if not re.match(r"^(?:\d{1,3}\.){3}\d{1,3}$", entity_text.strip()):
+                            detected_types.add("PHONE")
+                            operators["PHONE_NUMBER"] = OperatorConfig("replace", {"new_value": "[REDACTED-PHONE]"})
                     elif entity_type in ("CREDIT_CARD", "US_SSN", "IP_ADDRESS"):
                         tag = "CREDIT_CARD" if entity_type == "CREDIT_CARD" else ("US_SSN" if entity_type == "US_SSN" else "IP_ADDRESS")
                         detected_types.add(tag)
@@ -315,14 +317,20 @@ class GuardrailsClient:
                 logger.warning(f"Presidio analyze pass encountered exception: {exc}")
 
         # 2. Rule & Regex PII Engine (guarantees coverage and false-positive code term protection)
+        # IP Address FIRST so IP address dots are redacted before phone matching
+        ip_pattern = r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"
+        if re.search(ip_pattern, redacted):
+            detected_types.add("IP_ADDRESS")
+            redacted = re.sub(ip_pattern, "[REDACTED-IP_ADDRESS]", redacted)
+
         # Email
         email_pattern = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
         if re.search(email_pattern, redacted):
             detected_types.add("EMAIL")
             redacted = re.sub(email_pattern, "[REDACTED-EMAIL]", redacted)
 
-        # Phone Number
-        phone_pattern = r"\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"
+        # Phone Number (excluding IP address patterns via lookarounds)
+        phone_pattern = r"(?<!\d\.)\b(?:\+?\d{1,3}[-\s]?)?\(?\d{3}\)?\s*[-.]?\s*\d{3}\s*[-.]?\s*\d{4}\b(?!\.\d)"
         if re.search(phone_pattern, redacted):
             detected_types.add("PHONE")
             redacted = re.sub(phone_pattern, "[REDACTED-PHONE]", redacted)
@@ -338,12 +346,6 @@ class GuardrailsClient:
         if re.search(ssn_pattern, redacted):
             detected_types.add("US_SSN")
             redacted = re.sub(ssn_pattern, "[REDACTED-US_SSN]", redacted)
-
-        # IP Address
-        ip_pattern = r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"
-        if re.search(ip_pattern, redacted):
-            detected_types.add("IP_ADDRESS")
-            redacted = re.sub(ip_pattern, "[REDACTED-IP_ADDRESS]", redacted)
 
         # Person Name detection (protecting code tokens like AliceBlue)
         person_names = ["John Doe", "Jane Smith", "Alice Smith", "Bob Johnson", "Robert Paulson"]

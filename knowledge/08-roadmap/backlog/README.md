@@ -105,7 +105,7 @@ Each story follows a consistent 16-section template:
 
 | ID | File | Title | Priority | Effort |
 |---|---|---|---|---|
-| US-028 | [US-028-opentelemetry-tracing.md](US-028-opentelemetry-tracing.md) | OpenTelemetry Tracing — Basic Observability Setup | Medium | M |
+| US-028 | [US-028-opentelemetry-tracing.md](done/US-028-opentelemetry-tracing.md) | OpenTelemetry Tracing — Basic Observability Setup | Completed | M |
 
 ---
 

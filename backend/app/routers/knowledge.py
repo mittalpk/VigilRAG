@@ -1,9 +1,9 @@
 """
-VigilRAG Unified Knowledge API Router (US-008 / US-028).
+VigilRAG Unified Knowledge API Router (US-008 / US-028 / US-036).
 
 Provides:
 - POST /api/v1/knowledge/query endpoint powered by HybridRetrievalEngine over database chunks,
-  instrumented with OpenTelemetry distributed tracing.
+  instrumented with OpenTelemetry distributed tracing and graceful connector degradation.
 """
 
 import datetime
@@ -49,15 +49,18 @@ async def query_knowledge(
         "requester_identity": requester_identity,
     }
 
+    source_warnings: list = []
     with trace_span("knowledge_api.retrieve", attributes=span_attributes, trace_id=trace_id):
         # Execute Hybrid Search over SQLAlchemy database chunks
         async with AsyncSessionLocal() as session:
-            evidence = await retrieval_engine.retrieve(
+            retrieval_result = await retrieval_engine.retrieve_with_availability(
                 session=session,
                 query=body.query,
                 requester_identity=requester_identity,
                 top_k=body.top_k,
             )
+            evidence = retrieval_result.evidence
+            source_warnings = list(retrieval_result.source_availability_warning or [])
 
             # US-030: Analyze evidence freshness and conflicts
             from backend.app.services.freshness_service import FreshnessConflictEvaluator
@@ -113,6 +116,7 @@ async def query_knowledge(
         total_retrieved=len(evidence),
         stale_count=analysis_res.overall_stale_count,
         conflicts=conflicts_schema,
+        source_availability_warning=source_warnings,
     )
 
     headers = {}
@@ -125,6 +129,8 @@ async def query_knowledge(
                 total_chunks = cnt_res.scalar() or 0
                 if total_chunks == 0:
                     headers["X-VigilRAG-Warning"] = "corpus-empty"
+                elif source_warnings:
+                    headers["X-VigilRAG-Warning"] = "sources-unavailable"
                 else:
                     headers["X-VigilRAG-Info"] = "all-results-filtered-by-permission"
         except Exception:

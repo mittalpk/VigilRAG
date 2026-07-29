@@ -107,6 +107,7 @@ async def execute_agent_query(
 
         kb_data = response.json()
         evidence_items = kb_data.get("evidence", [])
+        source_warnings = list(kb_data.get("source_availability_warning") or [])
 
         # 3. Guardrails scan over evidence chunks (US-024)
         with trace_span("guardrails.scan_evidence", attributes={"evidence.raw_count": len(evidence_items)}, trace_id=trace_id):
@@ -133,7 +134,15 @@ async def execute_agent_query(
             input_tokens = len(body.query.split())
             output_tokens = len(answer.split())
         elif len(safe_evidence_items) == 0:
-            answer = "The corpus contains no relevant results or access is restricted for your identity."
+            if source_warnings:
+                # US-036 edge case: connectors unavailable — do not hallucinate
+                unavailable = ", ".join(source_warnings)
+                answer = (
+                    f"No relevant evidence was found from any available source "
+                    f"(unavailable: {unavailable}). I cannot provide an answer without evidence."
+                )
+            else:
+                answer = "The corpus contains no relevant results or access is restricted for your identity."
             input_tokens = len(body.query.split())
             output_tokens = len(answer.split())
         else:
@@ -153,11 +162,21 @@ async def execute_agent_query(
                     )
                 )
 
-            # LLM Synthesis over evidence
+            # LLM Synthesis over evidence (partial answer OK when some sources unavailable)
             evidence_summary = "\n---\n".join(
                 f"[{c.chunk_id}] {c.content_excerpt}" for c in citations
             )
-            answer = f"Based on retrieved evidence:\n{evidence_summary}\n\nConclusion: Processed query '{sanitized_query}' successfully."
+            partial_note = ""
+            if source_warnings:
+                partial_note = (
+                    f"\n\nNote: Partial answer — some sources were unavailable "
+                    f"({', '.join(source_warnings)})."
+                )
+            answer = (
+                f"Based on retrieved evidence:\n{evidence_summary}\n\n"
+                f"Conclusion: Processed query '{sanitized_query}' successfully."
+                f"{partial_note}"
+            )
             input_tokens = len(sanitized_query.split()) + sum(len(c.content_excerpt.split()) for c in citations)
             output_tokens = len(answer.split())
 
@@ -192,6 +211,7 @@ async def execute_agent_query(
             "trace_id": trace_id,
             "guardrail_flags": guardrail_flags,
             "execution_time_ms": exec_time_ms,
+            "source_availability_warning": source_warnings,
         }
 
         # 6. Output Validation Check (US-025 - answer-out guardrail)

@@ -278,6 +278,59 @@ class FeedbackReviewItem(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
 
+class QueryCost(Base):
+    """Per-query token cost aggregation backing US-036 / NFR-009 cost dashboard."""
+
+    __tablename__ = "query_costs"
+
+    id = Column(String(100), primary_key=True)
+    query_id = Column(String(100), nullable=False, index=True)
+    trace_id = Column(String(100), nullable=False, index=True)
+    llm_model = Column(String(100), nullable=False)
+    model_family = Column(String(50), nullable=False, default="Pro")  # Flash | Pro | Other
+    input_tokens = Column(Integer, nullable=False, default=0)
+    output_tokens = Column(Integer, nullable=False, default=0)
+    estimated_cost_usd = Column(Float, nullable=False, default=0.0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    __table_args__ = (
+        Index("idx_query_costs_created_at", "created_at"),
+        Index("idx_query_costs_model_family", "model_family"),
+    )
+
+
+class HealthProbe(Base):
+    """Health-probe samples for availability SLO tracking (US-036 / NFR-008)."""
+
+    __tablename__ = "health_probes"
+
+    id = Column(String(100), primary_key=True)
+    service_name = Column(String(100), nullable=False, index=True)
+    is_healthy = Column(Boolean, nullable=False, default=True)
+    latency_ms = Column(Integer, nullable=True)
+    detail = Column(Text, nullable=True)
+    probed_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    __table_args__ = (
+        Index("idx_health_probes_probed_at", "probed_at"),
+    )
+
+
+class AvailabilityAlert(Base):
+    """Fired when 30-day rolling availability drops below the SLO target (US-036)."""
+
+    __tablename__ = "availability_alerts"
+
+    id = Column(String(100), primary_key=True)
+    alert_type = Column(String(100), nullable=False, default="availability_slo_breach")
+    message = Column(Text, nullable=False)
+    rolling_availability_pct = Column(Float, nullable=False)
+    target_pct = Column(Float, nullable=False, default=99.5)
+    channel = Column(String(50), nullable=False, default="log")
+    delivered = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
 async def init_db():
 
     """Helper to initialize database tables."""

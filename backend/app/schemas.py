@@ -47,6 +47,8 @@ class HybridRetrievalResponse(BaseModel):
     total_retrieved: int
     stale_count: int = 0
     conflicts: List[ConflictSignalSchema] = Field(default_factory=list)
+    # US-036 / NFR-005: graceful degradation when a source connector is unavailable
+    source_availability_warning: List[str] = Field(default_factory=list)
 
 
 class EvaluationRunResponse(BaseModel):
@@ -204,5 +206,97 @@ class SourceListResponse(BaseModel):
 class FeedbackActionRequest(BaseModel):
     action: str = Field(..., description="Action: 'promote', 'dismiss', or 'needs_investigation'")
     golden_answer: Optional[str] = Field(None, description="Expected golden answer when promoting to EvaluationCase")
+
+
+# ── Cost Dashboard Schemas (US-036 / NFR-009) ───────────────────────────────
+
+class CostDailyPoint(BaseModel):
+    date: str
+    total_cost_usd: float
+    query_count: int
+    avg_cost_per_query_usd: float
+
+
+class CostDashboardResponse(BaseModel):
+    total_cost_usd: float
+    total_queries: int
+    avg_cost_per_query_usd: float
+    cost_by_model: Dict[str, float]
+    daily_trend: List[CostDailyPoint]
+    pi_total_cost_usd: float
+    alert_spike: bool = False
+    spike_message: Optional[str] = None
+    window_days: int = 30
+
+
+class QueryCostRecordRequest(BaseModel):
+    query_id: str = Field(..., description="Query ID associated with the LLM call")
+    trace_id: str = Field(..., description="OTel / request trace ID")
+    model: str = Field(..., description="LLM model id (e.g. gemini-1.5-pro, gemini-flash)")
+    input_tokens: int = Field(..., ge=0)
+    output_tokens: int = Field(..., ge=0)
+
+
+class QueryCostRecordResponse(BaseModel):
+    id: str
+    query_id: str
+    estimated_cost_usd: float
+    model_family: str
+
+
+# ── SLO Dashboard Schemas (US-036 / NFR-008) ────────────────────────────────
+
+class SLODailyPoint(BaseModel):
+    date: str
+    availability_pct: float
+    total_probes: int
+    healthy_probes: int
+
+
+class AvailabilityAlertItem(BaseModel):
+    id: str
+    alert_type: str
+    message: str
+    rolling_availability_pct: float
+    target_pct: float
+    channel: str
+    delivered: bool
+    created_at: Optional[str] = None
+
+
+class SLODashboardResponse(BaseModel):
+    target_pct: float
+    window_days: int
+    rolling_availability_pct: float
+    total_probes: int
+    successful_probes: int
+    failed_probes: int
+    services: Dict[str, Dict[str, Any]]
+    alert_active: bool
+    alert_message: Optional[str] = None
+    recent_alerts: List[AvailabilityAlertItem] = Field(default_factory=list)
+    daily_uptime: List[SLODailyPoint] = Field(default_factory=list)
+
+
+class HealthProbeRequest(BaseModel):
+    service_name: str = Field(..., description="Service under probe (vigilrag-backend | vigilrag-agent)")
+    is_healthy: bool = True
+    latency_ms: Optional[int] = None
+    detail: Optional[str] = None
+
+
+class HealthProbeResponse(BaseModel):
+    id: str
+    service_name: str
+    is_healthy: bool
+    probed_at: str
+
+
+class SLOAlertEvaluateResponse(BaseModel):
+    breached: bool
+    rolling_availability_pct: float
+    target_pct: float
+    alert_id: Optional[str] = None
+    message: Optional[str] = None
 
 

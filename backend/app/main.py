@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from .config import settings
-from .routers import admin, agent, audit, auth, feedback, health, knowledge, model_cards, sources
+from .routers import admin, agent, audit, auth, feedback, health, knowledge, mcp, model_cards, sources
 from .client import http_client
 from .auth import get_current_user
 
@@ -119,4 +119,9 @@ app.include_router(
     model_cards.router,
     prefix="/api/v1/admin",
     tags=["Model Cards"],
+)
+app.include_router(
+    mcp.router,
+    prefix="/mcp/v1",
+    tags=["MCP"],
 )

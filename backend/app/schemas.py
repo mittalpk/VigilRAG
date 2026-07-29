@@ -300,3 +300,57 @@ class SLOAlertEvaluateResponse(BaseModel):
     message: Optional[str] = None
 
 
+# ── MCP Gateway Schemas (US-037 / FR-010) ───────────────────────────────────
+
+class McpToolInputSchema(BaseModel):
+    type: str = "object"
+    properties: Dict[str, Any] = Field(default_factory=dict)
+    required: List[str] = Field(default_factory=list)
+
+
+class McpToolDefinition(BaseModel):
+    name: str
+    description: str
+    input_schema: McpToolInputSchema
+
+
+class McpToolsManifestResponse(BaseModel):
+    tools: List[McpToolDefinition]
+    protocol_version: str = "2024-11-05"
+    server_name: str = "vigilrag"
+
+
+class McpCitation(BaseModel):
+    chunk_id: str
+    source_url: str
+    source_type: str = "unknown"
+    content_excerpt: str = ""
+
+
+class McpQueryResponse(BaseModel):
+    """Typed QueryResponse matching the human/agent cited-answer contract."""
+
+    answer: str
+    citations: List[McpCitation] = Field(default_factory=list)
+    trace_id: str
+    guardrail_flags: List[str] = Field(default_factory=list)
+    execution_time_ms: int
+    source_availability_warning: List[str] = Field(default_factory=list)
+    mcp_gateway_overhead_ms: int = Field(
+        0, description="Protocol-translation overhead excluding downstream agent latency"
+    )
+
+
+class McpToolInvokeRequest(BaseModel):
+    query: str = Field(..., min_length=1, description="Natural language question")
+    top_k: int = Field(5, ge=1, le=20, description="Top-K evidence items")
+    requester_identity: Optional[str] = Field(
+        None,
+        description="Optional; must match the API-key service identity when provided",
+    )
+
+
+class McpErrorResponse(BaseModel):
+    error: Dict[str, Any]
+
+

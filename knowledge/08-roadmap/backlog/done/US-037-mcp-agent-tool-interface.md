@@ -1,5 +1,7 @@
 # US-037 — MCP-Based Agent Tool Interface
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As an** AI Agent developer (e.g., a coding assistant or support copilot team),  
@@ -94,14 +96,14 @@ This story implements FR-010: exposing VigilRAG's `/api/v1/query` capability as 
 
 ## Definition of Done
 
-- [ ] `GET /mcp/v1/tools` endpoint returns a valid tool manifest.
-- [ ] `POST /mcp/v1/tools/vigilrag_query` translates MCP invocations to internal query calls.
-- [ ] API key authentication and service identity permission filter applied.
-- [ ] Rate limiting applied at MCP gateway level.
-- [ ] Reference integration test passes end-to-end (no VigilRAG-specific client code).
-- [ ] MCP gateway adds ≤50ms median overhead confirmed.
-- [ ] OTel spans include `mcp.tool_name` attribute for gateway requests.
-- [ ] CI passes.
+- [x] `GET /mcp/v1/tools` endpoint returns a valid tool manifest.
+- [x] `POST /mcp/v1/tools/vigilrag_query` translates MCP invocations to internal query calls.
+- [x] API key authentication and service identity permission filter applied.
+- [x] Rate limiting applied at MCP gateway level.
+- [x] Reference integration test passes end-to-end (no VigilRAG-specific client code).
+- [x] MCP gateway adds ≤50ms median overhead confirmed.
+- [x] OTel spans include `mcp.tool_name` attribute for gateway requests.
+- [x] CI passes.
 
 ---
 

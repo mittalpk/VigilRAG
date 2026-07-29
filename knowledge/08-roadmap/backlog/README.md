@@ -113,7 +113,7 @@ Each story follows a consistent 16-section template:
 
 | ID | File | Title | Feature | Priority | Effort |
 |---|---|---|---|---|---|
-| US-029 | [US-029-gap-analysis-fixes.md](done/US-029-gap-analysis-fixes.md) | Platform Audit Gap Reconciliation & Remediation | Completed | S |
+| US-029 | [US-029-iterative-reasoning-loop.md](done/US-029-iterative-reasoning-loop.md) | Iterative Multi-Agent Reasoning Loop (Real Evaluate / Re-Plan) | Completed | L |
 | US-030 | [US-030-freshness-conflict-signaling.md](US-030-freshness-conflict-signaling.md) | Freshness Detection & Conflict Signaling | FEAT-05 | Medium | M |
 | US-031 | [US-031-source-registration-workflow.md](US-031-source-registration-workflow.md) | Source Registration Self-Service Workflow (Admin UI) | FEAT-07 | Medium | L |
 | US-032 | [US-032-database-source-connector.md](US-032-database-source-connector.md) | Structured/Database Source Connector (Postgres Schema) | FEAT-12 | High | M |

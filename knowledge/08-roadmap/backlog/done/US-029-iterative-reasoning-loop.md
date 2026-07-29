@@ -1,5 +1,7 @@
 # US-029 — Iterative Multi-Agent Reasoning Loop (Real Evaluate / Re-Plan)
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As a** Knowledge Worker asking a complex, multi-hop question,  
@@ -95,15 +97,15 @@ In PI-1, the agent's `should_continue` node is hardcoded to `False` (single-pass
 
 ## Definition of Done
 
-- [ ] `should_continue()` stub replaced with a real evaluate/re-plan loop.
-- [ ] `max_iterations` enforced; configurable via `AGENT_MAX_ITERATIONS` env var.
-- [ ] Identical-evidence early termination implemented.
-- [ ] `AgentState` updated with iteration tracking fields.
-- [ ] OTel span attributes: `agent.iteration_count`, `agent.sufficient`.
-- [ ] RAGAS `context_recall` on multi-hop evaluation subset ≥5pp improvement vs. single-pass baseline confirmed.
-- [ ] CI evaluation gate updated with new threshold (if improved quality raises the baseline).
-- [ ] Unit tests: max_iterations enforced; early termination on identical evidence; single-pass (`max_iterations=1`) behaviour unchanged.
-- [ ] CI passes.
+- [x] `should_continue()` stub replaced with a real evaluate/re-plan loop.
+- [x] `max_iterations` enforced; configurable via `AGENT_MAX_ITERATIONS` env var.
+- [x] Identical-evidence early termination implemented.
+- [x] `AgentState` updated with iteration tracking fields.
+- [x] OTel span attributes: `agent.iteration_count`, `agent.sufficient`.
+- [x] RAGAS `context_recall` on multi-hop evaluation subset ≥5pp improvement vs. single-pass baseline confirmed.
+- [x] CI evaluation gate updated with new threshold (if improved quality raises the baseline).
+- [x] Unit tests: max_iterations enforced; early termination on identical evidence; single-pass (`max_iterations=1`) behaviour unchanged.
+- [x] CI passes.
 
 ---
 

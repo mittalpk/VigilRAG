@@ -34,6 +34,10 @@ class AgentState(TypedDict):
     results: Annotated[list[dict[str, Any]], operator.add]
     iteration: int
     max_iterations: int
+    sufficient: bool
+    missing_information: str
+    sub_queries: list[str]
+    all_evidence: list[dict[str, Any]]
     final_answer: str
 
 
@@ -41,16 +45,13 @@ class AgentState(TypedDict):
 
 def build_graph() -> Any:
     """
-    Compile the LangGraph multi-agent graph.
-    Optimized for Speed:
-    - Planner: Gemini 2.5 Flash (Low latency)
-    - Executor: Parallelized tool calls (asyncio.gather)
-    - Responder: Gemini 2.5 Pro (High quality)
+    Compile the LangGraph multi-agent graph with US-029 Iterative Reasoning Loop.
+    Workflow: Plan -> Execute -> Evaluate -> (Decompose -> Execute -> Evaluate)* -> Respond
     """
     from .config import settings
     google_api_key = settings.gemini_api_key.get_secret_value()
     
-    # Fast model for planning and mapping
+    # Fast model for planning, decomposition, and evaluation
     llm_flash = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
         temperature=0,
@@ -70,7 +71,7 @@ def build_graph() -> Any:
 
     async def node_plan(state: AgentState) -> dict:
         start_time = time.time()
-        logger.info("Generating execution plan (Flash)...")
+        logger.info("Generating initial execution plan (Flash)...")
         system = SystemMessage(content=(
             "You are an expert VigilRAG AI engineer. Break the user's task into a concrete, "
             "ordered plan of tool calls using the tools available to you. "
@@ -86,9 +87,9 @@ def build_graph() -> Any:
             return {
                 "plan": [{"tool": "search_confluence", "input": {"query": state["task"]}}],
                 "results": [{"step": "plan", "count": 1, "note": "timeout_fallback"}],
+                "iteration": state.get("iteration", 0) + 1,
             }
 
-        # Primary path: LLM responded with structured tool_calls (expected when bind_tools is used)
         plan = []
         if hasattr(resp, "tool_calls") and resp.tool_calls:
             for tc in resp.tool_calls:
@@ -96,9 +97,7 @@ def build_graph() -> Any:
                 if tool_name.startswith("default_api:"):
                     tool_name = tool_name.split(":", 1)[1]
                 plan.append({"tool": tool_name, "input": tc.get("args", {})})
-            logger.info(f"Plan from tool_calls: {len(plan)} step(s)")
 
-        # Fallback path: LLM responded with plain text JSON
         if not plan:
             import json, re
             text_content = ""
@@ -116,21 +115,24 @@ def build_graph() -> Any:
                 logger.warning(f"Plan JSON parse failed ({e})")
 
         if not plan:
-            logger.warning("Empty plan — using fallback.")
             plan = [{"tool": "search_confluence", "input": {"query": state["task"]}}]
 
         duration = time.time() - start_time
         logger.info(f"Plan generated in {duration:.2f}s: {len(plan)} step(s)")
-        return {"plan": plan, "results": [{"step": "plan", "count": len(plan)}]}
+        return {
+            "plan": plan,
+            "results": [{"step": "plan", "count": len(plan)}],
+            "iteration": state.get("iteration", 0) + 1,
+        }
 
     async def node_execute(state: AgentState) -> dict:
-        """Parallel Execution of all planned steps."""
+        """Parallel Execution of planned steps with evidence deduplication tracking."""
         start_time = time.time()
-        steps = state["plan"]
+        steps = state.get("plan", [])
         if not steps:
-            return {"iteration": state["iteration"] + 1}
+            return {}
 
-        logger.info(f"Executing {len(steps)} steps in parallel...")
+        logger.info(f"Executing {len(steps)} steps in parallel (iteration {state.get('iteration', 1)})...")
 
         async def run_step(step):
             tool_name = step.get("tool", "")
@@ -150,30 +152,118 @@ def build_graph() -> Any:
             except Exception as e:
                 return {"step": "execute", "tool": tool_name, "error": str(e)}
 
-        # Run all tools matching the plan concurrently
         results = await asyncio.gather(*[run_step(s) for s in steps])
         
+        # Deduplicate and accumulate evidence items
+        existing_evidence = state.get("all_evidence", [])
+        existing_keys = {str(item.get("chunk_id") or item.get("output", "")) for item in existing_evidence}
+        
+        new_evidence = list(existing_evidence)
+        for r in results:
+            key = str(r.get("chunk_id") or r.get("output", ""))
+            if key and key not in existing_keys:
+                new_evidence.append(r)
+                existing_keys.add(key)
+
         duration = time.time() - start_time
-        logger.info(f"Parallel execution finished in {duration:.2f}s")
+        logger.info(f"Execution finished in {duration:.2f}s (Accumulated evidence: {len(new_evidence)})")
         return {
-            "iteration": len(steps),
             "results": results,
+            "all_evidence": new_evidence,
         }
 
     async def node_evaluate(state: AgentState) -> dict:
-        return {}
+        """US-029: Evaluates if accumulated evidence is sufficient to answer the task."""
+        current_iteration = state.get("iteration", 1)
+        max_iters = state.get("max_iterations", 3)
+        
+        if current_iteration >= max_iters:
+            logger.info(f"Max iterations reached ({current_iteration}/{max_iters}). Moving to response.")
+            return {"sufficient": True, "missing_information": ""}
+
+        # If previous iteration produced no new evidence, terminate early to avoid loops
+        results = state.get("results", [])
+        latest_results = [r for r in results if r.get("step") == "execute"]
+        if current_iteration > 1 and not latest_results:
+            logger.info("No new execution results in follow-up iteration. Terminating early.")
+            return {"sufficient": True, "missing_information": ""}
+
+        system = SystemMessage(content=(
+            "You are a critical quality evaluator for an AI Q&A agent.\n"
+            "Assess whether the collected execution evidence is sufficient to completely answer the user's task.\n"
+            "Respond in JSON format with two keys:\n"
+            '  "sufficient": true/false,\n'
+            '  "missing_information": "description of missing details if sufficient is false"\n'
+        ))
+        
+        evidence_summary = "\n".join(
+            f"- {r.get('tool')}: {r.get('output', r.get('error', ''))}"
+            for r in state.get("results", []) if r.get("step") == "execute"
+        )
+        prompt = f"Task: {state['task']}\nAccumulated Evidence:\n{evidence_summary}"
+        
+        try:
+            resp = await asyncio.wait_for(llm_flash.ainvoke([system, HumanMessage(content=prompt)]), timeout=LLM_TIMEOUT_S)
+            import json, re
+            text = resp.content if isinstance(resp.content, str) else str(resp.content)
+            match = re.search(r"\{.*\}", text, re.DOTALL)
+            parsed = json.loads(match.group(0)) if match else {}
+            sufficient = bool(parsed.get("sufficient", True))
+            missing = str(parsed.get("missing_information", ""))
+        except Exception as exc:
+            logger.warning(f"Sufficiency evaluation error ({exc}); defaulting to sufficient=True")
+            sufficient = True
+            missing = ""
+
+        logger.info(f"Sufficiency evaluation (Iteration {current_iteration}): sufficient={sufficient}")
+        return {"sufficient": sufficient, "missing_information": missing}
+
+    async def node_decompose(state: AgentState) -> dict:
+        """US-029: Decomposes missing information into follow-up tool sub-queries."""
+        logger.info("Decomposing missing information into follow-up sub-queries...")
+        system = SystemMessage(content=(
+            "Generate 1-2 targeted follow-up tool calls to retrieve missing information for the task.\n"
+            "Return tool calls using the available tools."
+        ))
+        prompt = f"Original Task: {state['task']}\nMissing Information: {state.get('missing_information', '')}"
+        
+        try:
+            resp = await asyncio.wait_for(planner_llm.ainvoke([system, HumanMessage(content=prompt)]), timeout=LLM_TIMEOUT_S)
+            plan = []
+            if hasattr(resp, "tool_calls") and resp.tool_calls:
+                for tc in resp.tool_calls:
+                    tool_name = tc.get("name", "")
+                    if tool_name.startswith("default_api:"):
+                        tool_name = tool_name.split(":", 1)[1]
+                    plan.append({"tool": tool_name, "input": tc.get("args", {})})
+            
+            if not plan:
+                plan = [{"tool": "search_confluence", "input": {"query": state.get("missing_information", state["task"])}}]
+        except Exception as exc:
+            logger.warning(f"Decomposition failed ({exc}); using fallback sub-query.")
+            plan = [{"tool": "search_confluence", "input": {"query": state["task"]}}]
+
+        return {
+            "plan": plan,
+            "iteration": state.get("iteration", 1) + 1,
+            "sub_queries": [p.get("tool", "") for p in plan],
+        }
 
     def should_continue(state: AgentState) -> str:
-        # Single-pass synthesis for PI-1 MVP (US-011)
-        # TODO US-029: Implement iterative re-planning loop evaluation when faithfulness threshold is not met
-        return "respond"
+        """US-029: Conditional edge evaluating whether to decompose for next iteration or respond."""
+        iteration = state.get("iteration", 1)
+        max_iters = state.get("max_iterations", 3)
+        sufficient = state.get("sufficient", False)
 
+        if sufficient or iteration >= max_iters:
+            return "respond"
+        return "decompose"
 
     async def node_respond(state: AgentState) -> dict:
         logger.info("Composing final response (Pro)...")
         summary = "\n".join(
             f"- {r.get('tool')}: {r.get('output', r.get('error', 'ok'))}"
-            for r in state["results"]
+            for r in state.get("results", [])
             if r.get("step") == "execute"
         )
         system = SystemMessage(content=(
@@ -198,12 +288,14 @@ def build_graph() -> Any:
     workflow.add_node("plan", node_plan)
     workflow.add_node("execute", node_execute)
     workflow.add_node("evaluate", node_evaluate)
+    workflow.add_node("decompose", node_decompose)
     workflow.add_node("respond", node_respond)
 
     workflow.set_entry_point("plan")
     workflow.add_edge("plan", "execute")
     workflow.add_edge("execute", "evaluate")
-    workflow.add_conditional_edges("evaluate", should_continue, {"execute": "execute", "respond": "respond"})
+    workflow.add_conditional_edges("evaluate", should_continue, {"decompose": "decompose", "respond": "respond"})
+    workflow.add_edge("decompose", "execute")
     workflow.add_edge("respond", END)
 
     return workflow.compile()

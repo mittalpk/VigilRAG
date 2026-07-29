@@ -1,5 +1,7 @@
 # US-025 — Output Validation — Structural / Safety Schema Check
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As a** Security Engineer,  
@@ -85,15 +87,15 @@ This is the "answer-out" guardrail checkpoint described in FR-012 and the [Appli
 
 ## Definition of Done
 
-- [ ] `GuardrailsClient.validate_output()` implemented with schema and safety checks.
-- [ ] Schema failure → HTTP 503 with `"reason": "schema-invalid"`.
-- [ ] Safety failure → HTTP 503 with `"reason": "safety-check-failed"`.
-- [ ] Rejected outputs logged with `trace_id`, reason, and truncated output excerpt.
-- [ ] `guardrail_flags` updated in `Answer` record for rejected outputs.
-- [ ] Unit tests: valid output passes; schema-invalid output rejected; safety-failing fixture output rejected.
-- [ ] US-027 safety fixture suite passes.
-- [ ] CI passes.
-- [ ] Execution Runbook §4.5 second bullet marked `[x]`.
+- [x] `GuardrailsClient.validate_output()` implemented with schema and safety checks.
+- [x] Schema failure → HTTP 503 with `"reason": "schema-invalid"`.
+- [x] Safety failure → HTTP 503 with `"reason": "safety-check-failed"`.
+- [x] Rejected outputs logged with `trace_id`, reason, and truncated output excerpt.
+- [x] `guardrail_flags` updated in `Answer` record for rejected outputs.
+- [x] Unit tests: valid output passes; schema-invalid output rejected; safety-failing fixture output rejected.
+- [x] US-027 safety fixture suite passes.
+- [x] CI passes.
+- [x] Execution Runbook §4.5 second bullet marked `[x]`.
 
 ---
 

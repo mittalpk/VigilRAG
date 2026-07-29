@@ -1,8 +1,9 @@
 """
-Agent Service Unified Query API Router for US-011 / US-024.
+Agent Service Unified Query API Router for US-011 / US-024 / US-025.
 
 Provides:
-- POST /api/v1/query: Orchestrates retrieval over backend Knowledge API, applies Guardrails scan, and synthesises cited answer.
+- POST /api/v1/query: Orchestrates retrieval over backend Knowledge API, applies Guardrails scan,
+  synthesises cited answer, and runs answer-out output validation before returning response.
 """
 
 from datetime import datetime
@@ -144,10 +145,20 @@ async def execute_agent_query(
 
     exec_time_ms = int((datetime.now() - start_time).total_seconds() * 1000)
 
-    return AgentQueryResponse(
-        answer=answer,
-        citations=citations,
-        trace_id=trace_id,
-        guardrail_flags=guardrail_flags,
-        execution_time_ms=exec_time_ms,
-    )
+    response_dict = {
+        "answer": answer,
+        "citations": [c.model_dump() for c in citations],
+        "trace_id": trace_id,
+        "guardrail_flags": guardrail_flags,
+        "execution_time_ms": exec_time_ms,
+    }
+
+    # 5. Output Validation Check (US-025 - answer-out guardrail)
+    validation = guardrails_client.validate_output(response_dict, trace_id=trace_id)
+    if not validation.valid:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Output validation failed: {validation.reason}",
+        )
+
+    return AgentQueryResponse.model_validate(response_dict)

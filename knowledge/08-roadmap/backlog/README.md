@@ -96,7 +96,7 @@ Each story follows a consistent 16-section template:
 | ID | File | Title | Priority | Effort |
 |---|---|---|---|---|
 | US-024 | [US-024-prompt-injection-defense.md](done/US-024-prompt-injection-defense.md) | Prompt-Injection Defense — Retrieved Content Scan | Completed | M |
-| US-025 | [US-025-output-validation.md](US-025-output-validation.md) | Output Validation — Structural / Safety Schema Check | High | S |
+| US-025 | [US-025-output-validation.md](done/US-025-output-validation.md) | Output Validation — Structural / Safety Schema Check | Completed | S |
 | US-026 | [US-026-pii-redaction-presidio.md](US-026-pii-redaction-presidio.md) | PII Redaction — Microsoft Presidio Integration | High | M |
 | US-027 | [US-027-guardrails-ci-test-suite.md](US-027-guardrails-ci-test-suite.md) | Guardrails CI Test Suite — Injection & Safety Fixture Suite | High | M |
 

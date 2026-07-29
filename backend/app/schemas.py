@@ -26,6 +26,16 @@ class EvidenceItem(BaseModel):
     references: List[str] = Field(default_factory=list)
     rerank_score: Optional[float] = None
     permissions_ref: str = "public"
+    is_stale: bool = False
+    last_modified_date: Optional[str] = None
+    staleness_warning: Optional[str] = None
+
+
+class ConflictSignalSchema(BaseModel):
+    has_conflict: bool = True
+    conflict_type: str
+    description: str
+    conflicting_chunk_ids: List[str] = Field(default_factory=list)
 
 
 class HybridRetrievalResponse(BaseModel):
@@ -35,6 +45,8 @@ class HybridRetrievalResponse(BaseModel):
     execution_time_ms: int
     query: str
     total_retrieved: int
+    stale_count: int = 0
+    conflicts: List[ConflictSignalSchema] = Field(default_factory=list)
 
 
 class EvaluationRunResponse(BaseModel):

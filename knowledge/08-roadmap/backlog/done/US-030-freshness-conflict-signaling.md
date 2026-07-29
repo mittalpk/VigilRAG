@@ -1,5 +1,7 @@
 # US-030 — Freshness Detection & Conflict Signaling
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As a** Knowledge Worker,  
@@ -83,14 +85,14 @@ This story implements FR-005: detecting and surfacing freshness/conflict signals
 
 ## Definition of Done
 
-- [ ] Conflict detection (LLM-based) implemented in the agent tier.
-- [ ] Staleness detection (in-memory computation) implemented.
-- [ ] Synthesis prompt updated to surface signals in the answer text.
-- [ ] `Answer.conflict_signal` and `Answer.staleness_signal` fields added (Alembic migration).
-- [ ] FR-005 fixture test: conflicting chunks → conflict flag in response; stale chunk → staleness warning.
-- [ ] `FRESHNESS_STALENESS_DAYS` configurable via env var.
-- [ ] Unit tests: conflict detection, staleness detection, false-positive case.
-- [ ] CI passes.
+- [x] Conflict detection (LLM/heuristic-based) implemented in the agent tier.
+- [x] Staleness detection (in-memory computation) implemented.
+- [x] Synthesis prompt updated to surface signals in the answer text.
+- [x] `Answer.conflict_signal` and `Answer.staleness_signal` fields added (Alembic migration).
+- [x] FR-005 fixture test: conflicting chunks → conflict flag in response; stale chunk → staleness warning.
+- [x] `FRESHNESS_STALENESS_DAYS` configurable via env var.
+- [x] Unit tests: conflict detection, staleness detection, false-positive case.
+- [x] CI passes.
 
 ---
 

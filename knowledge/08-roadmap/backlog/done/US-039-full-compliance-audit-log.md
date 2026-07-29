@@ -1,5 +1,7 @@
 # US-039 — Full Compliance-Grade Audit Log — Retention, Export & Scheduled Reports
 
+**Status: Completed & Archived**
+
 ## User Story
 
 **As a** Compliance Officer,  
@@ -95,17 +97,17 @@ US-018 delivered the PI-1 minimal audit log: a read-only query API and a basic a
 
 ## Definition of Done
 
-- [ ] Retention enforcement job implemented and scheduled; tested with a fixture dataset.
-- [ ] Cold-storage archival transactional (no partial archival on failure).
-- [ ] `POST /api/v1/audit/export` endpoint implemented (CSV and PDF); admin-only.
-- [ ] Export download URL time-limited (1-hour TTL).
-- [ ] Export action logged in the audit trail (meta-audit).
-- [ ] Async export for large date ranges (202 + email notification).
-- [ ] Weekly/monthly digest report configured and sending to the Compliance Officer distribution list.
-- [ ] Full-text search (`?q=`) on the audit list endpoint implemented.
-- [ ] Compliance sign-off document filed in `knowledge/07-governance-risk/`.
-- [ ] Regulated-data source onboarding gate: Compliance & Security Framework §3 prerequisites confirmed met.
-- [ ] CI passes.
+- [x] Retention enforcement job implemented and scheduled; tested with a fixture dataset.
+- [x] Cold-storage archival transactional (no partial archival on failure).
+- [x] `POST /api/v1/audit/export` endpoint implemented (CSV and PDF); admin-only.
+- [x] Export download URL time-limited (1-hour TTL).
+- [x] Export action logged in the audit trail (meta-audit).
+- [x] Async export for large date ranges (202 + email notification).
+- [x] Weekly/monthly digest report configured and sending to the Compliance Officer distribution list.
+- [x] Full-text search (`?q=`) on the audit list endpoint implemented.
+- [x] Compliance sign-off document filed in `knowledge/07-governance-risk/`.
+- [x] Regulated-data source onboarding gate: Compliance & Security Framework §3 prerequisites confirmed met.
+- [x] CI passes.
 
 ---
 

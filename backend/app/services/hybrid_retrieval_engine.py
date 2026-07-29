@@ -52,6 +52,7 @@ def compute_rrf_scores(
     return scores
 
 
+from backend.app.services.cross_encoder_reranker import CrossEncoderReranker
 from backend.app.services.permission_evaluator import PermissionEvaluator
 
 
@@ -63,7 +64,7 @@ class HybridRetrievalEngine:
         reranker: Optional[RerankerInterface] = None,
         permission_evaluator: Optional[PermissionEvaluator] = None,
     ):
-        self.reranker = reranker or PassthroughReranker()
+        self.reranker = reranker or CrossEncoderReranker()
         self.permission_evaluator = permission_evaluator or PermissionEvaluator()
 
     async def retrieve(

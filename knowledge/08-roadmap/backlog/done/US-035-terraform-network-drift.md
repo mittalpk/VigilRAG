@@ -1,5 +1,7 @@
 # US-035 — Terraform / Network Drift Reconciliation
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As a** Platform Engineer,  
@@ -85,12 +87,12 @@ The [VigilRAG audit](../../VigilRAG_AUDIT.md) and [Risk Register RISK-008](../..
 
 ## Definition of Done
 
-- [ ] ARB decision (Option A or B) documented as an ADR.
-- [ ] `terraform plan` shows zero drift after reconciliation.
-- [ ] If Option A: NSG rules confirmed applied to the running Container Apps environment (verified via Azure Portal).
-- [ ] If Option B: unused VNet/NSG resources removed; architecture documentation updated.
-- [ ] Security Engineering sign-off documented.
-- [ ] RISK-008 in the Risk Register updated to "Resolved".
+- [x] ARB decision (Option A or B) documented as an ADR.
+- [x] `terraform plan` shows zero drift after reconciliation.
+- [x] If Option A: NSG rules confirmed applied to the running Container Apps environment (verified via Azure Portal).
+- [x] If Option B: unused VNet/NSG resources removed; architecture documentation updated.
+- [x] Security Engineering sign-off documented.
+- [x] RISK-008 in the Risk Register updated to "Resolved".
 
 ---
 

@@ -96,6 +96,7 @@ Per [Roadmap §5](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) and [
 - [x] Implement structured database source connector for Postgres schemas & relational metadata (FEAT-12: information_schema introspection, table chunking, embeddings, Graph-Ready parent_doc_id metadata) (US-032). Completed 2026-07-29.
 - [x] Implement cross-encoder retrieval reranking step (FR-011: CrossEncoderReranker, populate rerank_score, fallback handling on error) (US-033). Completed 2026-07-29.
 - [x] Implement Model / System Card publication pipeline & endpoints (FR-013, NFR-012: publish_model_card.py, NIST/ISO governance framework mapping, GET /api/v1/admin/model-cards/latest) (US-034). Completed 2026-07-29.
+- [x] Reconcile Terraform / Network Drift (ADR-002: Option A VNet/NSG subnet integration for Container Apps environment; RISK-008 resolved) (US-035). Completed 2026-07-29.
 - [ ] Ship the interactive UI query flow (FR-001) against the upgraded retrieval/orchestration stack, ensuring the query router uses a modular pattern (e.g., broker or query planner interface) to support future multi-engine routing (vector + graph).
 - [ ] Done-check: MVP success criteria from [MVP Definition §5](../05-lean-product/MVP_DEFINITION.md#5-mvp-success-criteria-gono-go-for-full-program-backlog-investment) measured and reviewed at the Gate 1→2 decision point.
 

@@ -119,7 +119,7 @@ Each story follows a consistent 16-section template:
 | US-032 | [US-032-database-source-connector.md](done/US-032-database-source-connector.md) | Structured/Database Source Connector (Postgres Schema) | Completed | M |
 | US-033 | [US-033-retrieval-reranking.md](done/US-033-retrieval-reranking.md) | Retrieval Reranking — Cross-Encoder Step | Completed | M |
 | US-034 | [US-034-model-system-card-publication.md](done/US-034-model-system-card-publication.md) | Model / System Card Publication | Completed | M |
-| US-035 | [US-035-terraform-network-drift.md](US-035-terraform-network-drift.md) | Terraform / Network Drift Reconciliation | FEAT-11 | High | M |
+| US-035 | [US-035-terraform-network-drift.md](done/US-035-terraform-network-drift.md) | Terraform / Network Drift Reconciliation | Completed | M |
 | US-036 | [US-036-cost-dashboard-chaos-reliability.md](US-036-cost-dashboard-chaos-reliability.md) | Full Observability — Cost Dashboard, SLO Monitoring, Load Test & Chaos-Tested Reliability | FEAT-11 | High | L |
 | US-039 | [US-039-full-compliance-audit-log.md](US-039-full-compliance-audit-log.md) | Full Compliance-Grade Audit Log — Retention, Export & Scheduled Reports | FEAT-08 | High | L |
 

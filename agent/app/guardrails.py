@@ -4,7 +4,7 @@ Provides Prompt-Injection Defense scanning on retrieved content (evidence-in) an
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 import os
 import re
@@ -171,7 +171,7 @@ class GuardrailsClient:
                 category = match.get("category", "unknown")
                 pattern_id = match.get("id", "unknown")
 
-                timestamp = datetime.utcnow().isoformat() + "Z"
+                timestamp = datetime.now(timezone.utc).isoformat()
                 event = InjectionEvent(
                     trace_id=trace_id,
                     chunk_id=chunk_id,

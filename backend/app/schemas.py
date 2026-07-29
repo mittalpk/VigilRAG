@@ -354,3 +354,39 @@ class McpErrorResponse(BaseModel):
     error: Dict[str, Any]
 
 
+# ── Vector Graduation Schemas (US-038 / FEAT-20) ────────────────────────────
+
+class VectorTriggerSignal(BaseModel):
+    name: str
+    met: bool
+    value: Any
+    threshold: Any
+    rationale: str
+
+
+class VectorGraduationEvaluationResponse(BaseModel):
+    evaluated_at: str
+    signals: List[VectorTriggerSignal]
+    signals_met: int
+    decision: str
+    recommendation: str
+    next_evaluation_date: str
+    current_backend: str
+    dual_write_enabled: bool
+    migration_plan: Optional[Dict[str, Any]] = None
+    borderline: bool = False
+
+
+class VectorMigrationValidateRequest(BaseModel):
+    source_count: int = Field(..., ge=0)
+    target_count: int = Field(..., ge=0)
+
+
+class VectorMigrationValidateResponse(BaseModel):
+    ok: bool
+    mismatch_ratio: float
+    source_count: int
+    target_count: int
+    max_mismatch_ratio: float
+
+

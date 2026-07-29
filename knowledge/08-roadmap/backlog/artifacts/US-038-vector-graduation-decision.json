@@ -1,0 +1,45 @@
+{
+  "story": "US-038",
+  "feat": "FEAT-20",
+  "evaluated_at": "2026-07-30T00:00:00+00:00",
+  "decision": "no_migration",
+  "signals_met": 0,
+  "signals": {
+    "corpus_size": {
+      "value": {"chunk_count_order": "pilot_le_50k", "fullscan_p90_ms": null},
+      "threshold": {"chunk_count": 500000, "fullscan_p90_ms": 500},
+      "met": false
+    },
+    "query_latency": {
+      "value": {"p90_ms": 3620, "retrieval_dominant": false, "source": "US-036-load-test-report.md"},
+      "threshold": {"p90_ms": 12000, "requires_retrieval_dominant": true},
+      "met": false
+    },
+    "filtering_complexity": {
+      "value": {"rich_metadata_prefilter_required": false},
+      "threshold": {"rich_metadata_prefilter_required": true},
+      "met": false
+    },
+    "operational_load": {
+      "value": {"index_build_minutes": 0, "postgres_contention": false},
+      "threshold": {"index_build_minutes": 30, "postgres_contention": true},
+      "met": false
+    }
+  },
+  "next_evaluation_date": "2026-10-28",
+  "current_backend": "pgvector",
+  "abstraction_landed": true,
+  "components": [
+    "VectorSearchBackend",
+    "PgvectorBackend",
+    "QdrantVectorSearchBackend",
+    "DualWriteVectorSearchBackend",
+    "scripts/migrate_vector_db.py",
+    "GET /api/v1/admin/vector-graduation/evaluate"
+  ],
+  "source_measurements": [
+    "US-036-load-test-report.md",
+    "TECHNOLOGY_ARCHITECTURE.md#6a-vector-database-graduation-path"
+  ],
+  "recommendation": "Fewer than 2 graduation signals met (0/4). Remain on pgvector; re-evaluate by 2026-10-28."
+}

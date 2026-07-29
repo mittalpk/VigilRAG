@@ -130,7 +130,7 @@ Each story follows a consistent 16-section template:
 | ID | File | Title | Feature | Priority | Effort |
 |---|---|---|---|---|---|
 | US-037 | [US-037-mcp-agent-tool-interface.md](done/US-037-mcp-agent-tool-interface.md) | MCP-Based Agent Tool Interface | Completed | M |
-| US-038 | [US-038-vector-db-graduation.md](US-038-vector-db-graduation.md) | Vector Database Graduation Evaluation & Migration | FEAT-20 | Trigger-based | XL/S |
+| US-038 | [US-038-vector-db-graduation.md](done/US-038-vector-db-graduation.md) | Vector Database Graduation Evaluation & Migration | Completed | XL/S |
 
 ---
 

@@ -65,12 +65,20 @@ class Settings(BaseSettings):
     # Demo Mode (opt-in simulated data)
     demo_mode: bool = Field(default=False, alias="DEMO_MODE")
 
+    # Vector search backend (US-038 / FEAT-20)
+    vector_search_backend: str = Field(default="pgvector", alias="VECTOR_SEARCH_BACKEND")
+    vector_search_dual_write: bool = Field(default=False, alias="VECTOR_SEARCH_DUAL_WRITE")
+    qdrant_url: str = Field(default="", alias="QDRANT_URL")
+    qdrant_api_key: SecretStr = Field(default=SecretStr(""), alias="QDRANT_API_KEY")
+    qdrant_collection: str = Field(default="vigilrag_chunks", alias="QDRANT_COLLECTION")
+
     def __init__(self, **data):
         super().__init__(**data)
         logger.info(f"✓ Settings initialized: INTERNAL_API_KEY length = {len(self.internal_api_key.get_secret_value())}")
         logger.info(f"  BACKEND_URL env var: {os.getenv('BACKEND_URL', 'NOT SET')}")
         logger.info(f"  AGENT_SERVICE_URL env var: {os.getenv('AGENT_SERVICE_URL', 'NOT SET')}")
         logger.info(f"  DEMO_MODE: {self.demo_mode}")
+        logger.info(f"  VECTOR_SEARCH_BACKEND: {self.vector_search_backend} dual_write={self.vector_search_dual_write}")
 
 
 

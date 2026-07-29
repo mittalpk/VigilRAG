@@ -106,7 +106,7 @@ Per [Roadmap §5](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) and [
 Per [Roadmap §5](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) (MCP interface, enterprise-scale concerns).
 
 - [x] Ship MCP-based agent tool interface (FR-010 / FEAT-10): `GET /mcp/v1/tools`, `POST /mcp/v1/tools/vigilrag_query`, `X-API-Key` → service identity, MCP rate-limit pool, OTel `mcp.tool_name` (US-037). Completed 2026-07-30 (`backend/app/routers/mcp.py`, `service_api_keys`, reference test via generic MCP HTTP client).
-- [ ] Vector database graduation evaluation / migration when trigger criteria met (US-038 / FEAT-20).
+- [x] Vector database graduation evaluation (US-038 / FEAT-20): trigger criteria evaluated → **no migration** (0/4 signals); `VectorSearchBackend` + Pgvector/Qdrant/dual-write abstraction and `scripts/migrate_vector_db.py` landed for future cutover; decision record in `artifacts/US-038-vector-graduation-decision.*`. Completed 2026-07-30.
 
 ## 6. What's explicitly not in this runbook
 

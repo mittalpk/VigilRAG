@@ -11,7 +11,6 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Protocol
 import json
 import logging
-import math
 import re
 from sqlalchemy import select, text
 
@@ -149,31 +148,28 @@ class HybridRetrievalEngine:
         if not chunks:
             return HybridRetrievalResult(source_availability_warning=warnings)
 
-        # 4. Vector Similarity Search (Cosine similarity over candidate set)
-        def cosine_similarity(v1: List[float], v2: List[float]) -> float:
-            if not v1 or not v2 or len(v1) != len(v2):
-                return 0.0
-            dot = sum(a * b for a, b in zip(v1, v2))
-            norm1 = math.sqrt(sum(a * a for a in v1))
-            norm2 = math.sqrt(sum(b * b for b in v2))
-            if norm1 == 0.0 or norm2 == 0.0:
-                return 0.0
-            return dot / (norm1 * norm2)
+        # 4. Vector Similarity Search via VectorSearchBackend (US-038)
+        from backend.app.services.vector_search.pgvector_backend import PgvectorBackend
 
-        vector_scores: List[tuple[Chunk, float]] = []
-        for chk in chunks:
-            if chk.embedding_vector_str:
-                try:
-                    vec = json.loads(chk.embedding_vector_str)
-                    sim = cosine_similarity(query_vector, vec)
-                    vector_scores.append((chk, sim))
-                except Exception:
-                    vector_scores.append((chk, 0.0))
-            else:
-                vector_scores.append((chk, 0.0))
+        pg_backend = PgvectorBackend(session)
+        vector_ranked_ids = await pg_backend.rank_candidates(query_vector, chunks)
 
-        vector_scores.sort(key=lambda x: x[1], reverse=True)
-        vector_ranked_ids = [c[0].id for c in vector_scores]
+        # When a non-pgvector / dual-write backend is configured, also query it for
+        # ranking enrichment (primary still drives RRF via candidate set above).
+        try:
+            from backend.app.services.vector_search import get_vector_search_backend
+            configured = get_vector_search_backend(session)
+            if configured.backend_name not in ("pgvector",) and not configured.backend_name.startswith("dual:"):
+                source_ids = list({c.source_id for c in chunks if c.source_id})
+                remote_hits = await configured.search(query_vector, top_k=max(top_k * 2, 10), source_ids=source_ids)
+                # Prefer remote ordering when hits intersect the candidate set
+                candidate_ids = {c.id for c in chunks}
+                remote_ordered = [h.chunk_id for h in remote_hits if h.chunk_id in candidate_ids]
+                if remote_ordered:
+                    remaining = [cid for cid in vector_ranked_ids if cid not in remote_ordered]
+                    vector_ranked_ids = remote_ordered + remaining
+        except Exception as exc:
+            logger.debug(f"Configured vector backend ranking skipped: {exc}")
 
         # 5. Keyword / Full-Text Search Overlap Scoring
         query_terms_set = set(query_terms)

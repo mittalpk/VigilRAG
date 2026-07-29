@@ -60,7 +60,7 @@ SUPPORTED_SOURCE_TYPES: List[SourceTypeInfo] = [
         type_id="database_schema",
         display_name="Database / Structured Schema",
         description="Relational database tables, column metadata, and schema definitions (FEAT-12)",
-        supported=False,
+        supported=True,
     ),
 ]
 

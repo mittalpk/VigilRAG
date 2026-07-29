@@ -33,6 +33,10 @@ from backend.app.schemas import (
     SLODailyPoint,
     SLODashboardResponse,
     AvailabilityAlertItem,
+    VectorGraduationEvaluationResponse,
+    VectorMigrationValidateRequest,
+    VectorMigrationValidateResponse,
+    VectorTriggerSignal,
 )
 
 router = APIRouter()
@@ -392,4 +396,57 @@ async def evaluate_slo_alert(
         alert_id=result.get("alert_id"),
         message=result.get("message"),
     )
+
+
+# ── Vector DB Graduation (US-038 / FEAT-20) ─────────────────────────────────
+
+@router.get("/vector-graduation/evaluate", response_model=VectorGraduationEvaluationResponse)
+async def evaluate_vector_graduation(
+    admin_identity: str = Depends(require_admin),
+    session: AsyncSession = Depends(get_db_session),
+):
+    """
+    Admin-only evaluation of Technology Architecture §6a graduation triggers.
+
+    Returns migrate | no_migration | escalate with per-signal measurements.
+    """
+    from backend.app.services.vector_graduation_service import evaluate_graduation_triggers
+
+    evaluation = await evaluate_graduation_triggers(session)
+    return VectorGraduationEvaluationResponse(
+        evaluated_at=evaluation.evaluated_at,
+        signals=[VectorTriggerSignal(**asdict_signal(s)) for s in evaluation.signals],
+        signals_met=evaluation.signals_met,
+        decision=evaluation.decision,
+        recommendation=evaluation.recommendation,
+        next_evaluation_date=evaluation.next_evaluation_date,
+        current_backend=evaluation.current_backend,
+        dual_write_enabled=evaluation.dual_write_enabled,
+        migration_plan=evaluation.migration_plan,
+        borderline=evaluation.borderline,
+    )
+
+
+def asdict_signal(signal) -> dict:
+    return {
+        "name": signal.name,
+        "met": signal.met,
+        "value": signal.value,
+        "threshold": signal.threshold,
+        "rationale": signal.rationale,
+    }
+
+
+@router.post("/vector-graduation/validate-counts", response_model=VectorMigrationValidateResponse)
+async def validate_vector_migration_counts(
+    body: VectorMigrationValidateRequest,
+    admin_identity: str = Depends(require_admin),
+):
+    """Validate source vs target chunk counts before cutover (max 0.1% mismatch)."""
+    from backend.app.services.vector_graduation_service import validate_migration_counts
+
+    result = await validate_migration_counts(body.source_count, body.target_count)
+    if body.source_count < 0 or body.target_count < 0:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="counts must be >= 0")
+    return VectorMigrationValidateResponse(**result)
 

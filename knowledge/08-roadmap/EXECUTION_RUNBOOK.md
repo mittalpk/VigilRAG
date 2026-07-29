@@ -91,6 +91,7 @@ Per [Roadmap §5](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) and [
 ### 4.7 Unified query interface & Multi-agent reasoning
 
 - [x] Implement genuine iterative multi-agent reasoning loop (FR-004: evaluate sufficiency, decompose missing details into follow-up tool queries, max_iterations limit) (US-029). Completed 2026-07-29.
+- [x] Implement freshness detection and conflict signaling service across retrieved sources (FEAT-05: detect staleness >90 days and source contradictions) (US-030). Completed 2026-07-29.
 - [ ] Ship the interactive UI query flow (FR-001) against the upgraded retrieval/orchestration stack, ensuring the query router uses a modular pattern (e.g., broker or query planner interface) to support future multi-engine routing (vector + graph).
 - [ ] Done-check: MVP success criteria from [MVP Definition §5](../05-lean-product/MVP_DEFINITION.md#5-mvp-success-criteria-gono-go-for-full-program-backlog-investment) measured and reviewed at the Gate 1→2 decision point.
 

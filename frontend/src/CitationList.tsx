@@ -1,5 +1,12 @@
 import React, { useState } from 'react'
 
+export interface ConflictSignal {
+  has_conflict: boolean
+  conflict_type: string
+  description: string
+  conflicting_chunk_ids: string[]
+}
+
 export interface CitationItem {
   chunk_id: string
   source_url?: string
@@ -11,12 +18,17 @@ export interface CitationItem {
   content?: string
   relevance_score?: number
   permissions_ref?: string
+  is_stale?: boolean
+  last_modified_date?: string
+  staleness_warning?: string
 }
 
 export interface CitationListProps {
   citations?: CitationItem[]
   guardrailFlags?: string[]
   answerText?: string
+  conflicts?: ConflictSignal[]
+  staleCount?: number
 }
 
 export function formatAnswerWithInlineCitations(text: string): React.ReactNode {
@@ -84,7 +96,7 @@ export function getFileName(item: CitationItem): string {
   return item.chunk_id
 }
 
-export default function CitationList({ citations = [], guardrailFlags = [] }: CitationListProps) {
+export default function CitationList({ citations = [], guardrailFlags = [], conflicts = [], staleCount = 0 }: CitationListProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [showAll, setShowAll] = useState(false)
 
@@ -95,7 +107,31 @@ export default function CitationList({ citations = [], guardrailFlags = [] }: Ci
 
   return (
     <div className="citation-list-wrapper mt-16">
-      {/* 1. Guardrail Flags Warning Banner */}
+      {/* 1. Freshness & Conflict Warning Banners (US-030) */}
+      {conflicts && conflicts.length > 0 && (
+        <div className="guardrail-banner conflict-banner" style={{ backgroundColor: '#fff7ed', borderColor: '#f97316' }} role="alert">
+          <span className="guardrail-icon">⚡</span>
+          <div className="guardrail-text">
+            <strong style={{ color: '#c2410c' }}>Source Contradiction / Conflict Detected</strong>
+            {conflicts.map((conf, idx) => (
+              <div key={idx} className="guardrail-flag-item" style={{ color: '#ea580c' }}>
+                • [{conf.conflict_type.toUpperCase()}]: {conf.description}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {staleCount > 0 && (
+        <div className="guardrail-banner staleness-banner" style={{ backgroundColor: '#fefce8', borderColor: '#eab308' }} role="status">
+          <span className="guardrail-icon">⌛</span>
+          <div className="guardrail-text" style={{ color: '#854d0e' }}>
+            <strong>Stale Documentation Notice</strong>: {staleCount} source {staleCount === 1 ? 'document is' : 'documents are'} older than 90 days. Check source dates below.
+          </div>
+        </div>
+      )}
+
+      {/* 2. Guardrail Flags Warning Banner */}
       {guardrailFlags && guardrailFlags.length > 0 && (
         <div className="guardrail-banner" role="alert">
           <span className="guardrail-icon">⚠️</span>
@@ -150,11 +186,22 @@ export default function CitationList({ citations = [], guardrailFlags = [] }: Ci
                         {badge.icon} {badge.label}
                       </span>
                       <span className="file-name" title={fileName}>{fileName}</span>
+                      {item.is_stale && (
+                        <span className="stale-badge" style={{ backgroundColor: '#f59e0b', color: '#fff', fontSize: '0.75rem', padding: '2px 6px', borderRadius: '4px', marginLeft: 'auto' }} title={item.staleness_warning || 'Document is stale (>90 days old)'}>
+                          ⌛ Stale (&gt;90d)
+                        </span>
+                      )}
                     </div>
 
                     <div className="citation-excerpt">
                       {truncatedExcerpt}
                     </div>
+
+                    {item.last_modified_date && (
+                      <div className="citation-date-meta" style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>
+                        📅 Modified: {item.last_modified_date}
+                      </div>
+                    )}
 
                     <div className="citation-card-footer">
                       {isRestricted ? (

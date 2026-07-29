@@ -59,6 +59,19 @@ async def query_knowledge(
                 top_k=body.top_k,
             )
 
+            # US-030: Analyze evidence freshness and conflicts
+            from backend.app.services.freshness_service import FreshnessConflictEvaluator
+            freshness_evaluator = FreshnessConflictEvaluator()
+            analysis_res = freshness_evaluator.analyze(evidence)
+
+            # Update evidence items with freshness signals
+            for ev in evidence:
+                sig = analysis_res.freshness_signals.get(ev.chunk_id)
+                if sig:
+                    ev.is_stale = sig.is_stale
+                    ev.last_modified_date = sig.last_modified_date
+                    ev.staleness_warning = sig.staleness_warning
+
             # GAP-F01: Assign query_id before the try block so it is always available for the response.
             # This ensures the frontend can use query_id (not trace_id) for feedback submission.
             query_id = f"qry-{uuid.uuid4().hex[:12]}"
@@ -81,6 +94,16 @@ async def query_knowledge(
 
     exec_time_ms = int((datetime.datetime.now() - start_time).total_seconds() * 1000)
 
+    conflicts_schema = [
+        {
+            "has_conflict": c.has_conflict,
+            "conflict_type": c.conflict_type or "unknown",
+            "description": c.description or "",
+            "conflicting_chunk_ids": c.conflicting_chunk_ids,
+        }
+        for c in analysis_res.conflicts
+    ]
+
     response = HybridRetrievalResponse(
         evidence=evidence,
         trace_id=trace_id,
@@ -88,6 +111,8 @@ async def query_knowledge(
         execution_time_ms=exec_time_ms,
         query=body.query,
         total_retrieved=len(evidence),
+        stale_count=analysis_res.overall_stale_count,
+        conflicts=conflicts_schema,
     )
 
     headers = {}

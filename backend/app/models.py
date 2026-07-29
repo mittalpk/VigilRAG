@@ -21,6 +21,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     func,
 )
 
@@ -240,6 +241,23 @@ class EvaluationRun(Base):
     passed_threshold = Column(Boolean, nullable=False, default=True)
     run_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     details_json = Column(Text, nullable=False, default="[]")
+
+
+class FeedbackRecord(Base):
+    """Feedback entity backing US-019, FR-009, and Data Architecture §5."""
+
+    __tablename__ = "feedback"
+
+    id = Column(String(100), primary_key=True)
+    query_id = Column(String(100), ForeignKey("queries.id", ondelete="CASCADE"), nullable=False, index=True)
+    requester_identity = Column(String(255), nullable=False, index=True)
+    rating = Column(String(20), nullable=False)  # 'positive' or 'negative'
+    comment = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("query_id", "requester_identity", name="uq_feedback_query_identity"),
+    )
 
 
 async def init_db():

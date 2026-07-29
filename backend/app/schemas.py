@@ -90,3 +90,20 @@ class AuditQueryListResponse(BaseModel):
 class AuditQueryDetailResponse(AuditQueryItem):
     evidence_items: List[AuditEvidenceItem] = Field(default_factory=list)
     truncated: bool = False
+
+
+# ── Feedback Schemas (US-019) ───────────────────────────────────────────────
+
+class FeedbackCreateRequest(BaseModel):
+    query_id: str = Field(..., description="Target query ID being rated")
+    rating: str = Field(..., description="Rating: 'positive' or 'negative'")
+    comment: Optional[str] = Field(None, max_length=500, description="Optional free-text feedback comment")
+
+
+class FeedbackResponse(BaseModel):
+    received: bool = True
+    feedback_id: str
+    query_id: str
+    rating: str
+    message: str = "Feedback saved successfully"
+

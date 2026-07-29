@@ -82,6 +82,7 @@ const AgentAnimation = () => (
 
 import EvaluationDashboard from './EvaluationDashboard'
 import AuditLog from './pages/AuditLog'
+import FeedbackBar from './FeedbackBar'
 
 export default function App() {
   useEffect(() => {
@@ -347,6 +348,8 @@ export default function App() {
                   citations={knowData.evidence}
                   guardrailFlags={(knowData as any).guardrail_flags}
                 />
+
+                <FeedbackBar queryId={(knowData as any).query_id || knowData.trace_id} />
 
 
 

@@ -1,5 +1,7 @@
 # US-020 — Feedback → Evaluation Dataset Routing
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As an** AI Engineer,  
@@ -86,16 +88,16 @@ This story closes the loop between US-019 (feedback capture) and US-021/US-022 (
 
 ## Definition of Done
 
-- [ ] `feedback_review_items` table created via Alembic migration.
-- [ ] `route_feedback.py` script routes negative feedback to the review queue.
-- [ ] Admin review API endpoints implemented (list + action).
-- [ ] `FeedbackReview` admin UI page implemented.
-- [ ] Promoted cases create `EvaluationCase` records with `inactive` status until `golden_answer` is filled.
-- [ ] Activated cases increment `evaluation_dataset_version`.
-- [ ] FR-009 acceptance check met: a flagged response appears in the review queue within one day.
-- [ ] Unit tests: routing job, action endpoint, promotion to `EvaluationCase`.
-- [ ] CI passes.
-- [ ] Execution Runbook §4.6 (feedback routing bullet) marked `[x]`.
+- [x] `feedback_review_items` table created via Alembic migration.
+- [x] `route_feedback.py` script routes negative feedback to the review queue.
+- [x] Admin review API endpoints implemented (list + action).
+- [x] `FeedbackReview` admin UI page implemented.
+- [x] Promoted cases create `EvaluationCase` records with `inactive` status until `golden_answer` is filled.
+- [x] Activated cases increment `evaluation_dataset_version`.
+- [x] FR-009 acceptance check met: a flagged response appears in the review queue within one day.
+- [x] Unit tests: routing job, action endpoint, promotion to `EvaluationCase`.
+- [x] CI passes.
+- [x] Execution Runbook §4.6 (feedback routing bullet) marked `[x]`.
 
 ---
 

@@ -156,6 +156,28 @@ export interface FeedbackResponse {
   message: string
 }
 
+export interface FeedbackReviewItemResponse {
+  id: string
+  feedback_id?: string
+  query_id: string
+  requester_identity: string
+  query_text: string
+  answer_text?: string
+  user_comment?: string
+  rating: string
+  status: string
+  golden_answer?: string
+  reviewed_by?: string
+  created_at: string
+}
+
+export interface FeedbackReviewListResponse {
+  items: FeedbackReviewItemResponse[]
+  total: number
+  page: number
+  size: number
+}
+
 export const apiClient = {
   setToken: (token: string | null) => {
     authToken = token
@@ -211,5 +233,17 @@ export const apiClient = {
     request<FeedbackResponse>(`${BACKEND_URL}/api/v1/feedback`, {
       method: 'POST',
       body: JSON.stringify({ query_id: queryId, rating, comment }),
+    }),
+
+  getFeedbackReviewQueue: (statusFilter?: string, page = 1, size = 10) => {
+    const params = new URLSearchParams({ page: String(page), size: String(size) })
+    if (statusFilter) params.set('status_filter', statusFilter)
+    return request<FeedbackReviewListResponse>(`${BACKEND_URL}/api/v1/admin/feedback-review?${params.toString()}`)
+  },
+
+  actionFeedbackReviewItem: (itemId: string, action: 'promote' | 'dismiss' | 'needs_investigation', goldenAnswer?: string) =>
+    request<{ success: boolean; item_id: string; status: string }>(`${BACKEND_URL}/api/v1/admin/feedback-review/${itemId}/action`, {
+      method: 'POST',
+      body: JSON.stringify({ action, golden_answer: goldenAnswer }),
     }),
 }

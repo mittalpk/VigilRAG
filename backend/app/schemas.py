@@ -107,3 +107,33 @@ class FeedbackResponse(BaseModel):
     rating: str
     message: str = "Feedback saved successfully"
 
+
+# ── Feedback Review Schemas (US-020) ───────────────────────────────────────
+
+class FeedbackReviewItemResponse(BaseModel):
+    id: str
+    feedback_id: Optional[str] = None
+    query_id: str
+    requester_identity: str
+    query_text: str
+    answer_text: Optional[str] = None
+    user_comment: Optional[str] = None
+    rating: str
+    status: str
+    golden_answer: Optional[str] = None
+    reviewed_by: Optional[str] = None
+    created_at: str
+
+
+class FeedbackReviewListResponse(BaseModel):
+    items: List[FeedbackReviewItemResponse]
+    total: int
+    page: int
+    size: int
+
+
+class FeedbackActionRequest(BaseModel):
+    action: str = Field(..., description="Action: 'promote', 'dismiss', or 'needs_investigation'")
+    golden_answer: Optional[str] = Field(None, description="Expected golden answer when promoting to EvaluationCase")
+
+

@@ -21,8 +21,8 @@ fixtures:
     expected_flags: ["pii-redacted:IP_ADDRESS"]
   - id: "PII-FIX-005"
     name: "Person name John Doe in sentence"
-    input: "The report was authored by John Doe last Tuesday."
-    expected_redacted: "The report was authored by [REDACTED-PERSON] last Tuesday."
+    input: "The report was authored by John Doe for review."
+    expected_redacted: "The report was authored by [REDACTED-PERSON] for review."
     expected_flags: ["pii-redacted:PERSON"]
   - id: "PII-FIX-006"
     name: "Entire answer is PII email"

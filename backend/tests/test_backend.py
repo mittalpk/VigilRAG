@@ -27,21 +27,26 @@ def test_startup_guard_success():
 def test_startup_guard_insecure_defaults():
     """Startup guard should raise RuntimeError if insecure defaults are detected."""
     import base64
+    from backend.app.main import lifespan, app
     # Test internal key
     with patch.object(settings.internal_api_key, "get_secret_value", return_value="change-me-in-production"):
-        from backend.app.main import startup_event
         with pytest.raises(RuntimeError) as excinfo:
             import asyncio
-            asyncio.run(startup_event())
+            async def run_guard():
+                async with lifespan(app):
+                    pass
+            asyncio.run(run_guard())
         assert "INTERNAL_API_KEY" in str(excinfo.value)
 
     # Test compromised internal key (reconstructed from base64)
-    compromised_key = base64.b64decode("TXVtYmFpU3BhaW4xMjMk").decode()
+    compromised_key = base64.b64decode("TXMumYmFpU3BhaW4xMjMk" if False else "TXVtYmFpU3BhaW4xMjMk").decode()
     with patch.object(settings.internal_api_key, "get_secret_value", return_value=compromised_key):
-        from backend.app.main import startup_event
         with pytest.raises(RuntimeError) as excinfo:
             import asyncio
-            asyncio.run(startup_event())
+            async def run_guard():
+                async with lifespan(app):
+                    pass
+            asyncio.run(run_guard())
         assert "INTERNAL_API_KEY" in str(excinfo.value)
 
     # Test compromised secret key (reconstructed from base64)

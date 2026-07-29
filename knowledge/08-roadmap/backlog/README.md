@@ -82,7 +82,7 @@ Each story follows a consistent 16-section template:
 | ID | File | Title | Priority | Effort |
 |---|---|---|---|---|
 | US-019 | [US-019-feedback-capture.md](done/US-019-feedback-capture.md) | Thumbs Up / Down Feedback Capture | Completed | S |
-| US-020 | [US-020-feedback-evaluation-routing.md](US-020-feedback-evaluation-routing.md) | Feedback → Evaluation Dataset Routing | Medium | M |
+| US-020 | [US-020-feedback-evaluation-routing.md](done/US-020-feedback-evaluation-routing.md) | Feedback → Evaluation Dataset Routing | Completed | M |
 
 #### RAG Evaluation Harness (FEAT-16)
 

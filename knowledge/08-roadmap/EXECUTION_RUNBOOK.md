@@ -85,6 +85,7 @@ Per [Roadmap §5](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) and [
 - [x] Instrument distributed OpenTelemetry tracing (`opentelemetry-sdk`, `trace_span()`, Jaeger OTLP receiver) across agent & backend (US-028). Completed 2026-07-29.
 - [x] Implement the minimal audit log (FR-008: query, requester identity, evidence used, answer) — includes `guardrail_flags` from 4.5 so guardrail interventions are auditable, not silent (US-018). Completed 2026-07-29.
 - [x] Implement feedback capture (FR-009: thumbs up/down feeding the evaluation dataset built in 4.4) (US-019). Completed 2026-07-29.
+- [x] Implement feedback → evaluation dataset routing (FR-009: negative feedback queue & promotion to golden EvaluationCase) (US-020). Completed 2026-07-29.
 
 ### 4.7 Unified query interface
 

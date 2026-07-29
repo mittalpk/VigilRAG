@@ -260,6 +260,21 @@ class FeedbackRecord(Base):
     )
 
 
+class FeedbackReviewItem(Base):
+    """FeedbackReviewItem entity backing US-020, FR-009, and Data Architecture §5."""
+
+    __tablename__ = "feedback_review_items"
+
+    id = Column(String(100), primary_key=True)
+    feedback_id = Column(String(100), ForeignKey("feedback.id", ondelete="CASCADE"), nullable=True, index=True)
+    query_id = Column(String(100), ForeignKey("queries.id", ondelete="CASCADE"), nullable=False, index=True)
+    status = Column(String(50), nullable=False, default="pending")  # 'pending', 'promoted', 'dismissed', 'needs_investigation'
+    golden_answer = Column(Text, nullable=True)
+    reviewed_by = Column(String(255), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+
 async def init_db():
 
     """Helper to initialize database tables."""

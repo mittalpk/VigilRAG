@@ -1,5 +1,7 @@
 # US-028 — OpenTelemetry Tracing — Basic Observability Setup
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As a** Platform Engineer,  
@@ -88,16 +90,16 @@ This is the PI-1 slice of FEAT-11 (platform hardening) covering NFR-007 (Observa
 
 ## Definition of Done
 
-- [ ] `opentelemetry-sdk` and exporter added to `backend/requirements.txt` and `agent/requirements.txt`.
-- [ ] Root span created per request with `trace_id` matching the API response.
-- [ ] Child spans for: `knowledge_api.retrieve`, `agent.synthesise`, `guardrails.scan_evidence`, `guardrails.validate_output`.
-- [ ] LLM token count attributes populated.
-- [ ] Jaeger service added to `docker-compose.yml` for local development.
-- [ ] Langfuse exporter configured for demo/enterprise profiles.
-- [ ] NFR-007 done-check: synthetic broken retrieval diagnosable from trace within 5 minutes.
-- [ ] OTel export failure does not affect query response.
-- [ ] Unit tests: span creation asserted (with mocked OTel SDK).
-- [ ] CI passes.
+- [x] `opentelemetry-sdk` and exporter added to `backend/requirements.txt` and `agent/requirements.txt`.
+- [x] Root span created per request with `trace_id` matching the API response.
+- [x] Child spans for: `knowledge_api.retrieve`, `agent.synthesise`, `guardrails.scan_evidence`, `guardrails.validate_output`.
+- [x] LLM token count attributes populated.
+- [x] Jaeger service added to `docker-compose.yml` for local development.
+- [x] Langfuse exporter configured for demo/enterprise profiles.
+- [x] NFR-007 done-check: synthetic broken retrieval diagnosable from trace within 5 minutes.
+- [x] OTel export failure does not affect query response.
+- [x] Unit tests: span creation asserted (with mocked OTel SDK).
+- [x] CI passes.
 
 ---
 

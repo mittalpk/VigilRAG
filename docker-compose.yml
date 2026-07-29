@@ -16,6 +16,7 @@ services:
       AZURE_WIKI_CONTAINER: ${AZURE_WIKI_CONTAINER:-${azure-wiki-container:-"vigilrag-wiki"}}
       "azure-wiki-container": ${azure-wiki-container:-"vigilrag-wiki"}
       AGENT_SERVICE_URL: http://agent:8000
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
     volumes:
       - ./backend/app:/app/app  # live-reload in dev
       - ./mock_data:/app/mock_data
@@ -40,6 +41,7 @@ services:
       "gemini-api-key": ${gemini-api-key:-}
       AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-gpt-4o}
       BACKEND_URL: http://backend:8000
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
     volumes:
       - ./agent/app:/app/app
       - ./mock_data:/app/mock_data
@@ -54,6 +56,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+
+  # ─── Jaeger Observability All-in-One ───────────────────────────────────────
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: vigilrag-jaeger
+    ports:
+      - "16686:16686" # Jaeger Web UI
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+    networks:
+      - vigilrag-net
+    restart: unless-stopped
 
   # ─── React/TypeScript Frontend ─────────────────────────────────────────────
   frontend:

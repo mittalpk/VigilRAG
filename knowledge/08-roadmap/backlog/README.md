@@ -75,7 +75,7 @@ Each story follows a consistent 16-section template:
 
 | ID | File | Title | Priority | Effort |
 |---|---|---|---|---|
-| US-018 | [US-018-minimal-audit-log.md](US-018-minimal-audit-log.md) | Minimal Audit Log — Query, Identity, Evidence, Answer | High | M |
+| US-018 | [US-018-minimal-audit-log.md](done/US-018-minimal-audit-log.md) | Minimal Audit Log — Query, Identity, Evidence, Answer | Completed | M |
 
 #### Feedback Loop (FEAT-09)
 

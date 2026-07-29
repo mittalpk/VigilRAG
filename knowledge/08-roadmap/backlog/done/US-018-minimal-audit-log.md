@@ -1,5 +1,7 @@
 # US-018 — Minimal Audit Log — Query, Identity, Evidence, Answer
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As a** Compliance Officer,  
@@ -84,14 +86,14 @@ This story builds the compliance-facing interface to the `Query`, `EvidenceItem`
 
 ## Definition of Done
 
-- [ ] `GET /api/v1/audit/queries` and `GET /api/v1/audit/queries/{query_id}` implemented and admin-only.
-- [ ] Pagination (50 per page) and date-range / identity filters working.
-- [ ] `EvidenceItem[]` returned in detail view.
-- [ ] `AuditLog` frontend page implemented.
-- [ ] Unit tests: pagination, filter, admin guard, empty result.
-- [ ] Manual test: compliance reviewer can answer "what did user X see on date Y" from the UI alone.
-- [ ] Execution Runbook §4.6 (audit log bullet) marked `[x]`.
-- [ ] CI passes.
+- [x] `GET /api/v1/audit/queries` and `GET /api/v1/audit/queries/{query_id}` implemented and admin-only.
+- [x] Pagination (50 per page) and date-range / identity filters working.
+- [x] `EvidenceItem[]` returned in detail view.
+- [x] `AuditLog` frontend page implemented.
+- [x] Unit tests: pagination, filter, admin guard, empty result.
+- [x] Manual test: compliance reviewer can answer "what did user X see on date Y" from the UI alone.
+- [x] Execution Runbook §4.6 (audit log bullet) marked `[x]`.
+- [x] CI passes.
 
 ---
 

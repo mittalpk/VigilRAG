@@ -11,7 +11,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from .config import settings
-from .routers import health, knowledge, agent, auth, admin, audit
+from .routers import health, knowledge, agent, auth, admin, audit, feedback
 from .client import http_client
 from .auth import get_current_user
 
@@ -97,4 +97,9 @@ app.include_router(
     audit.router,
     prefix="/api/v1/audit",
     tags=["Audit"],
+)
+app.include_router(
+    feedback.router,
+    prefix="/api/v1/feedback",
+    tags=["Feedback"],
 )

@@ -1,5 +1,7 @@
 # US-019 — Thumbs Up / Down Feedback Capture
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As a** Knowledge Worker (pilot user),  
@@ -83,14 +85,14 @@ This is the minimal feedback capture described in [MVP Definition §3](../../05-
 
 ## Definition of Done
 
-- [ ] `feedback` table created via Alembic migration.
-- [ ] `POST /api/v1/feedback` endpoint implemented, authenticated, and handles duplicate submissions (409).
-- [ ] `FeedbackBar` UI component implemented with thumbs buttons, optional comment, confirmation toast.
-- [ ] One-rating-per-query-per-user enforced in UI and API.
-- [ ] Basic PII regex check on comment text.
-- [ ] Unit tests: valid feedback, duplicate submission, missing `query_id`.
-- [ ] CI passes.
-- [ ] Execution Runbook §4.6 (feedback capture bullet) updated toward `[x]`.
+- [x] `feedback` table created via Alembic migration.
+- [x] `POST /api/v1/feedback` endpoint implemented, authenticated, and handles duplicate submissions (409).
+- [x] `FeedbackBar` UI component implemented with thumbs buttons, optional comment, confirmation toast.
+- [x] One-rating-per-query-per-user enforced in UI and API.
+- [x] Basic PII regex check on comment text.
+- [x] Unit tests: valid feedback, duplicate submission, missing `query_id`.
+- [x] CI passes.
+- [x] Execution Runbook §4.6 (feedback capture bullet) updated toward `[x]`.
 
 ---
 

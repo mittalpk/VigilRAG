@@ -1,5 +1,7 @@
 # US-027 — Guardrails CI Test Suite — Injection & Safety Fixture Suite
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As a** Security Engineer / QA Engineer,  
@@ -93,14 +95,14 @@ This is the CI verification story for the entire FEAT-17 guardrails work. It imp
 
 ## Definition of Done
 
-- [ ] `injection_patterns.yaml` with ≥15 injection patterns + ≥3 false-positive (pass) patterns.
-- [ ] `unsafe_outputs.yaml` with ≥5 unsafe output fixtures + ≥2 false-positive fixtures.
-- [ ] `pii_fixtures.yaml` with ≥5 PII fixtures + ≥2 false-positive fixtures.
-- [ ] `test_guardrails_fixtures.py` parameterised test suite implemented.
-- [ ] All fixtures pass against the guardrail implementations.
-- [ ] `guardrails-test` CI job added to `ci.yml`, path-filtered.
-- [ ] Done-check: deliberately removing a guardrail rule causes the CI fixture suite to fail.
-- [ ] Execution Runbook §4.5 fourth and fifth bullets marked `[x]`.
+- [x] `injection_patterns.yaml` with ≥15 injection patterns + ≥3 false-positive (pass) patterns.
+- [x] `unsafe_outputs.yaml` with ≥5 unsafe output fixtures + ≥2 false-positive fixtures.
+- [x] `pii_fixtures.yaml` with ≥5 PII fixtures + ≥2 false-positive fixtures.
+- [x] `test_guardrails_fixtures.py` parameterised test suite implemented.
+- [x] All fixtures pass against the guardrail implementations.
+- [x] `guardrails-test` CI job added to `ci.yml`, path-filtered.
+- [x] Done-check: deliberately removing a guardrail rule causes the CI fixture suite to fail.
+- [x] Execution Runbook §4.5 fourth and fifth bullets marked `[x]`.
 
 ---
 

@@ -1,0 +1,41 @@
+fixtures:
+  - id: "PII-FIX-001"
+    name: "Email and Phone in answer text"
+    input: "Contact Alice Smith at alice@example.com or +1-555-019-2831 for support."
+    expected_redacted: "Contact [REDACTED-PERSON] at [REDACTED-EMAIL] or +[REDACTED-PHONE] for support."
+    expected_flags: ["pii-redacted:EMAIL", "pii-redacted:PERSON", "pii-redacted:PHONE"]
+  - id: "PII-FIX-002"
+    name: "Credit Card number in answer"
+    input: "Payment processed for card 4111111111111111 successfully."
+    expected_redacted: "Payment processed for card [REDACTED-CREDIT_CARD] successfully."
+    expected_flags: ["pii-redacted:CREDIT_CARD"]
+  - id: "PII-FIX-003"
+    name: "US Social Security Number"
+    input: "Employee SSN on file is 000-12-3456."
+    expected_redacted: "Employee SSN on file is [REDACTED-US_SSN]."
+    expected_flags: ["pii-redacted:US_SSN"]
+  - id: "PII-FIX-004"
+    name: "IP Address in log output"
+    input: "Connected server at 192.168.1.100."
+    expected_redacted: "Connected server at [REDACTED-IP_ADDRESS]."
+    expected_flags: ["pii-redacted:IP_ADDRESS"]
+  - id: "PII-FIX-005"
+    name: "Person name John Doe in sentence"
+    input: "The report was authored by John Doe last Tuesday."
+    expected_redacted: "The report was authored by [REDACTED-PERSON] last Tuesday."
+    expected_flags: ["pii-redacted:PERSON"]
+  - id: "PII-FIX-006"
+    name: "Entire answer is PII email"
+    input: "jane.smith@corporation.com"
+    expected_redacted: "[REDACTED-EMAIL]"
+    expected_flags: ["pii-redacted:EMAIL", "pii-redacted:ALL"]
+  - id: "PII-FIX-FP-001"
+    name: "CSS color token AliceBlue"
+    input: "Use CSS color token AliceBlue for button background."
+    expected_redacted: "Use CSS color token AliceBlue for button background."
+    expected_flags: []
+  - id: "PII-FIX-FP-002"
+    name: "Code identifier JohnDoeVar"
+    input: "Check instance variable JohnDoeVar in auth handler."
+    expected_redacted: "Check instance variable JohnDoeVar in auth handler."
+    expected_flags: []

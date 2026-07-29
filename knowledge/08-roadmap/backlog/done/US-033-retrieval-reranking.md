@@ -1,5 +1,7 @@
 # US-033 — Retrieval Reranking — Cross-Encoder Step
 
+**Status:** Completed & Archived
+
 ## User Story
 
 **As an** AI Engineer,  
@@ -85,16 +87,16 @@ Reranking is FR-011 and was intentionally deferred from PI-1 (where the rerankin
 
 ## Definition of Done
 
-- [ ] `CrossEncoderReranker` implemented, replacing `PassthroughReranker`.
-- [ ] Model loaded at startup; service refuses to start if model load fails.
-- [ ] `EvidenceItem.rerank_score` populated for all returned chunks.
-- [ ] Fallback to RRF order on reranker failure (with warning log).
-- [ ] RAGAS `context_precision` improvement ≥5pp vs. baseline confirmed.
-- [ ] Reranking latency ≤500ms median confirmed.
-- [ ] OTel span attributes captured.
-- [ ] CI evaluation gate updated with new threshold.
-- [ ] Unit tests: reranking reorders correctly; fallback on failure.
-- [ ] CI passes.
+- [x] `CrossEncoderReranker` implemented, replacing `PassthroughReranker`.
+- [x] Model loaded at startup; service refuses to start if model load fails.
+- [x] `EvidenceItem.rerank_score` populated for all returned chunks.
+- [x] Fallback to RRF order on reranker failure (with warning log).
+- [x] RAGAS `context_precision` improvement ≥5pp vs. baseline confirmed.
+- [x] Reranking latency ≤500ms median confirmed.
+- [x] OTel span attributes captured.
+- [x] CI evaluation gate updated with new threshold.
+- [x] Unit tests: reranking reorders correctly; fallback on failure.
+- [x] CI passes.
 
 ---
 

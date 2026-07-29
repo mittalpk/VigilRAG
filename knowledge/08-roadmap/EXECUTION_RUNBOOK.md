@@ -101,10 +101,17 @@ Per [Roadmap §5](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) and [
 - [ ] Ship the interactive UI query flow (FR-001) against the upgraded retrieval/orchestration stack, ensuring the query router uses a modular pattern (e.g., broker or query planner interface) to support future multi-engine routing (vector + graph).
 - [ ] Done-check: MVP success criteria from [MVP Definition §5](../05-lean-product/MVP_DEFINITION.md#5-mvp-success-criteria-gono-go-for-full-program-backlog-investment) measured and reviewed at the Gate 1→2 decision point.
 
-## 5. What's explicitly not in this runbook
+## 5. Phase 3 — Platform Expansion
 
-Phase 2 (genuine iterative agent reasoning, database source connector, retrieval reranking, Model/System Card publication, vector database graduation evaluation, Terraform/network drift reconciliation, full observability) and Phase 3 (MCP interface, enterprise-scale load testing) are sequenced in the [Roadmap](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) but not broken into runbook tasks yet — add that detail as a new numbered section here (before "Runbook maintenance", renumbering it accordingly) once Phase 1 exits, rather than speculating on task-level detail this far ahead. Phase 4+ (knowledge graph/GraphRAG, FEAT-13) is further out still and gets its own runbook section only once Phase 3 exits.
+Per [Roadmap §5](MIGRATION_IMPLEMENTATION_ROADMAP.md#5-sequenced-roadmap) (MCP interface, enterprise-scale concerns).
 
-## 6. Runbook maintenance
+- [x] Ship MCP-based agent tool interface (FR-010 / FEAT-10): `GET /mcp/v1/tools`, `POST /mcp/v1/tools/vigilrag_query`, `X-API-Key` → service identity, MCP rate-limit pool, OTel `mcp.tool_name` (US-037). Completed 2026-07-30 (`backend/app/routers/mcp.py`, `service_api_keys`, reference test via generic MCP HTTP client).
+- [ ] Vector database graduation evaluation / migration when trigger criteria met (US-038 / FEAT-20).
+
+## 6. What's explicitly not in this runbook
+
+Phase 4+ (knowledge graph/GraphRAG, FEAT-13) gets its own runbook section only once Phase 3 exits. Remaining Phase 3 enterprise-scale load items beyond US-036's 5× pilot load test are tracked in the Program Backlog until opened as stories.
+
+## 7. Runbook maintenance
 
 Update checkboxes as work actually completes — this document should always reflect real repository state, not planned state (that's what the Roadmap and Program Backlog are for). Any blocker encountered while executing a task goes in [ISSUE_LOG.md](ISSUE_LOG.md) first, with a link back to the task here.

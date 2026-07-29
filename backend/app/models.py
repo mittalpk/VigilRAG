@@ -331,6 +331,27 @@ class AvailabilityAlert(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
 
+class ServiceApiKey(Base):
+    """MCP consumer API keys mapped to service identities (US-037 / FR-010)."""
+
+    __tablename__ = "service_api_keys"
+
+    id = Column(String(100), primary_key=True)
+    name = Column(String(255), nullable=False)
+    key_hash = Column(String(64), unique=True, nullable=False, index=True)
+    key_prefix = Column(String(16), nullable=False, default="")
+    user_id = Column(String(100), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_by = Column(String(255), nullable=False, default="system")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    last_used_at = Column(DateTime(timezone=True), nullable=True)
+    revoked_at = Column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        Index("idx_service_api_keys_user_id", "user_id"),
+    )
+
+
 async def init_db():
 
     """Helper to initialize database tables."""

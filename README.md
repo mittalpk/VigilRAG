@@ -11,16 +11,17 @@ VigilRAG addresses a core enterprise challenge: **knowledge is scattered across 
 
 ## Project Status
 
-| Area | Current state | Target state |
+| Area | Current state | Next hardening |
 |---|---|---|
-| Retrieval | Keyword/filename matching over GitHub and Azure Blob content | Hybrid semantic + keyword retrieval with citations |
-| Agent reasoning | Single-pass plan → execute → respond | Genuinely iterative, evidence-driven refinement, bounded by `max_iterations` |
-| Database source | Not implemented (filename search only) | Real Postgres + pgvector data layer |
-| Trust boundary (agent ↔ data) | **Implemented and enforced** — the agent service holds no source-system credentials | Unchanged — this is a preserved architectural strength |
-| CI/CD | Test/build validation gate on push and PR (no auto-deploy) | Same, plus an automated LLM-evaluation quality gate |
-| Access control | Single hardcoded admin, JWT auth | RBAC, multi-user |
+| Retrieval | **Hybrid semantic + keyword (RRF)** over Postgres/pgvector with citations, reranking, freshness/conflict signals | Optional GraphRAG engine (Phase 4+); thin `QueryRouter` already pluggable |
+| Agent reasoning | **Iterative** LangGraph loop with `max_iterations`, guardrails (injection/PII/output), MCP tool interface | Multi-engine routing for relationship-shaped queries |
+| Database source | **Implemented** — Postgres schema connector + Graph-Ready chunk metadata | Broader structured-source types as needed |
+| Trust boundary (agent ↔ data) | **Enforced** — agent holds no source-system credentials; service key + JWT | Unchanged architectural strength |
+| CI/CD | Pytest + frontend build + **RAGAS evaluation-gate** on push/PR (no auto-deploy) | Keep eval corpus growing via feedback loop |
+| Access control | **RBAC + multi-user JWT**; admin-seeded bootstrap | Optional IdP federation |
+| Audit / compliance | Hot audit log + retention archive, CSV/PDF export (1h TTL), digests | Ops scheduling for retention/digest jobs |
 
-This table is a summary — the full, unvarnished technical audit is in [`knowledge/VigilRAG_AUDIT.md`](knowledge/VigilRAG_AUDIT.md), and the plan to close every gap above is in [`knowledge/08-roadmap/`](knowledge/08-roadmap/).
+This table reflects the repository as of US-039. Historical audit notes remain in [`knowledge/VigilRAG_AUDIT.md`](knowledge/VigilRAG_AUDIT.md); the living task list is [`knowledge/08-roadmap/EXECUTION_RUNBOOK.md`](knowledge/08-roadmap/EXECUTION_RUNBOOK.md).
 
 ---
 
@@ -29,19 +30,19 @@ This table is a summary — the full, unvarnished technical audit is in [`knowle
 The platform is structured as a **4-layer cloud-native system**:
 
 ### Layer 1 — Data Sources
-Live enterprise systems: **GitHub** (code), **Azure Blob Storage** (policy docs, wikis), **SQL Databases** (schemas, operational state — roadmap, see status table above), **Confluence** (internal documentation, demo-mode local fallback today).
+Live enterprise systems: **GitHub** (code), **Azure Blob Storage** (policy docs, wikis), **SQL Databases** (schema metadata via the structured connector), **Confluence** (internal documentation, with local/demo fallbacks).
 
 ### Layer 2 — Knowledge API (Retrieval)
 The `POST /api/v1/knowledge/query` endpoint is the **single source-of-truth interface**. It:
-- **Abstracts source complexity**: GitHub and Azure Blob behind a single API contract.
-- **Enforces a trust boundary**: all retrieval is read-only; the agent tier never touches source-system credentials directly — this is the one architectural claim in this README that is fully implemented and verifiable in code today.
-- **Returns structured, traceable JSON**: responses include normalized `facts` with `stable_id`, `timestamp`, and `source_url`.
+- Routes through a modular **`QueryRouter`** (vector hybrid today; graph engine stub for future GraphRAG).
+- Enforces a trust boundary: all retrieval is read-only; the agent tier never touches source-system credentials directly.
+- Returns structured, traceable JSON: evidence chunks, `query_id` / `trace_id`, groundedness score, and availability warnings.
 
 ### Layer 3 — Agent Orchestrator
-Built on **LangGraph + Gemini**, this layer runs a `plan → execute → respond` flow today (single pass). Genuine iterative refinement — re-planning when evidence is insufficient, bounded by a real `max_iterations` — is scoped as [FEAT-04](knowledge/06-agile-delivery/PROGRAM_BACKLOG.md) and not yet implemented; see [Project Status](#project-status).
+Built on **LangGraph + Gemini**, with iterative evaluate/re-plan bounded by `max_iterations`, plus MCP (`/mcp/v1/tools/vigilrag_query`) for machine consumers.
 
 ### Layer 4 — Application Layer
-A **React 18 + TypeScript** dashboard served via **Nginx**, with direct API integration.
+A **React 18 + TypeScript** dashboard (query, citations, feedback, audit/export, evaluation, cost/SLO, sources, model cards).
 
 ---
 
@@ -50,27 +51,37 @@ A **React 18 + TypeScript** dashboard served via **Nginx**, with direct API inte
 | Layer         | Technology                              | Role |
 |---------------|------------------------------------------|------|
 | Frontend      | React 18, TypeScript, Vite, Nginx        | Interactive knowledge dashboard |
-| Backend API   | Python 3.12, FastAPI, Pydantic           | API gateway + retrieval aggregator |
+| Backend API   | Python 3.12, FastAPI, Pydantic, SQLAlchemy, pgvector | API gateway + hybrid retrieval |
 | Agent Service | LangGraph, Gemini 2.5 Flash / Pro         | Multi-step reasoning engine |
-| Auth          | Python-JWT + shared internal API key      | Token-based & service-key security boundary |
+| Auth          | JWT + RBAC + shared internal API key      | Token-based & service-key security boundary |
 | Infrastructure| Terraform, Azure Container Apps (enterprise profile) or Netlify + Koyeb + Supabase (demo profile) | See [Deployment](#deployment) |
 
 ---
 
 ## Documentation
 
-All project documentation lives in **[`knowledge/`](knowledge/)** — the enterprise solution-architecture knowledge base: problem statement, the honest [current-state audit](knowledge/VigilRAG_AUDIT.md), TOGAF architecture vision/business/data/application/technology views (including the [as-built system architecture](knowledge/04-solution-architecture/ARCHITECTURE.md) and the two deployment runbooks referenced below), BABOK requirements specs, Lean product-fit validation plan, SAFe epic/backlog/PI plan, governance/risk register, and a concrete execution runbook + issue log. Start at [`knowledge/README.md`](knowledge/README.md).
+All project documentation lives in **[`knowledge/`](knowledge/)** — the enterprise solution-architecture knowledge base. Start at [`knowledge/README.md`](knowledge/README.md).
 
 ---
 
 ## Quick Start (Local)
 
 ```bash
-# 1. Configure environment variables
+# 1. Configure environment — required secrets must be set or services refuse to start
 cp .env.example .env
+# Edit .env and set at least:
+#   INTERNAL_API_KEY, SECRET_KEY, ADMIN_PASSWORD
+#   GOOGLE_API_KEY (agent) and GITHUB_PAT (optional for live GitHub)
 
-# 2. Start all services
+# 2. Install Python deps (includes reportlab for PDF audit export)
+python3 -m pip install -r backend/requirements.txt -r agent/requirements.txt
+
+# 3. Seed an admin user (uses ADMIN_PASSWORD from .env)
+PYTHONPATH=. python3 scripts/seed_admin.py
+
+# 4. Start services
 docker compose up --build
+# Or run backend/agent/frontend processes individually against the same .env
 ```
 
 | Service | URL |
@@ -78,6 +89,8 @@ docker compose up --build
 | Frontend Dashboard | `http://localhost:5173` |
 | Backend API (Swagger) | `http://localhost:8000/docs` |
 | Agent Service | `http://localhost:8001/docs` |
+
+Log in with the seeded admin identity, then use **Knowledge** → query → citations/feedback, **Audit Log** for export, and admin dashboards as needed.
 
 ## Testing
 
@@ -106,5 +119,3 @@ Issues and PRs are welcome; see [`knowledge/07-governance-risk/ARCHITECTURE_GOVE
 ## License
 
 PolyForm Shield License 1.0.0 — see [LICENSE](LICENSE).
-
-

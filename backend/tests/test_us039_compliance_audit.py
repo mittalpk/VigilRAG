@@ -239,20 +239,26 @@ async def test_export_csv_and_pdf_with_ttl_download(us039_client, tmp_path, monk
         bad = await client.get(f"/api/v1/audit/exports/{export_id}/download?token=not-the-token")
         assert bad.status_code == 403
 
-        # PDF export via JSON body
+        # PDF export via JSON body (503 if reportlab not installed in the environment)
         pdf = await client.post(
             "/api/v1/audit/export",
             headers=admin,
             json={"from_date": week_ago, "to_date": today, "format": "pdf"},
         )
-        assert pdf.status_code == 200
-        pdf_data = pdf.json()
-        pdf_token = pdf_data["download_url"].split("token=")[-1]
-        pdf_dl = await client.get(
-            f"/api/v1/audit/exports/{pdf_data['export_id']}/download?token={pdf_token}"
-        )
-        assert pdf_dl.status_code == 200
-        assert pdf_dl.content[:4] == b"%PDF"
+        try:
+            import reportlab  # noqa: F401
+
+            assert pdf.status_code == 200
+            pdf_data = pdf.json()
+            pdf_token = pdf_data["download_url"].split("token=")[-1]
+            pdf_dl = await client.get(
+                f"/api/v1/audit/exports/{pdf_data['export_id']}/download?token={pdf_token}"
+            )
+            assert pdf_dl.status_code == 200
+            assert pdf_dl.content[:4] == b"%PDF"
+        except ImportError:
+            assert pdf.status_code == 503
+            assert "reportlab" in pdf.json()["detail"].lower()
 
         # Expired token path (service-level)
         monkeypatch.setenv("AUDIT_EXPORT_TTL_SECONDS", "1")

@@ -14,6 +14,10 @@ class KnowledgeQueryRequest(BaseModel):
     requester_identity: Optional[str] = Field("user@example.com", description="Identity of requester for permission filtering")
     top_k: int = Field(5, ge=1, le=20, description="Number of top evidence items to return")
     target_systems: Optional[List[str]] = Field(None, description="Optional system filter (e.g. ['confluence', 'code_repos'])")
+    engine: Optional[str] = Field(
+        "auto",
+        description="Retrieval engine: auto|vector|graph (graph is a Phase 4+ stub; auto→vector today)",
+    )
 
 
 class EvidenceItem(BaseModel):
@@ -49,6 +53,8 @@ class HybridRetrievalResponse(BaseModel):
     conflicts: List[ConflictSignalSchema] = Field(default_factory=list)
     # US-036 / NFR-005: graceful degradation when a source connector is unavailable
     source_availability_warning: List[str] = Field(default_factory=list)
+    groundedness_score: Optional[float] = None
+    retrieval_engine: str = "vector"
 
 
 class EvaluationRunResponse(BaseModel):

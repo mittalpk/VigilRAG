@@ -109,13 +109,20 @@ def test_login_failure():
 def test_internal_api_key_auth_success():
     """Accessing knowledge query with valid internal API key should succeed."""
     from unittest.mock import AsyncMock
-    with patch("backend.app.routers.knowledge.retrieval_engine.retrieve", new_callable=AsyncMock, return_value=[]):
+    from backend.app.services.hybrid_retrieval_engine import HybridRetrievalResult
+
+    with patch(
+        "backend.app.routers.knowledge.default_query_router.retrieve",
+        new_callable=AsyncMock,
+        return_value=HybridRetrievalResult(evidence=[]),
+    ):
         response = client.post(
             "/api/v1/knowledge/query",
             headers={"X-Internal-API-Key": "secure-test-internal-api-key-9999"},
             json={"query": "test query", "target_systems": ["confluence"]}
         )
         assert response.status_code == 200
+
 
 def test_internal_api_key_auth_failure():
     """Accessing knowledge query with invalid internal API key should fail with 401."""
@@ -127,6 +134,7 @@ def test_internal_api_key_auth_failure():
     assert response.status_code == 401
     assert "Invalid internal API key" in response.json()["detail"]
 
+
 def test_jwt_auth_success():
     """Accessing knowledge query with valid JWT should succeed."""
     token = jwt.encode({
@@ -135,7 +143,13 @@ def test_jwt_auth_success():
     }, "secure-test-secret-key-9999-jwt", algorithm="HS256")
     
     from unittest.mock import AsyncMock
-    with patch("backend.app.routers.knowledge.retrieval_engine.retrieve", new_callable=AsyncMock, return_value=[]):
+    from backend.app.services.hybrid_retrieval_engine import HybridRetrievalResult
+
+    with patch(
+        "backend.app.routers.knowledge.default_query_router.retrieve",
+        new_callable=AsyncMock,
+        return_value=HybridRetrievalResult(evidence=[]),
+    ):
         response = client.post(
             "/api/v1/knowledge/query",
             headers={"Authorization": f"Bearer {token}"},

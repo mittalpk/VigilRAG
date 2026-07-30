@@ -2,7 +2,7 @@
 VigilRAG Unified Knowledge API Router (US-008 / US-028 / US-036).
 
 Provides:
-- POST /api/v1/knowledge/query endpoint powered by HybridRetrievalEngine over database chunks,
+- POST /api/v1/knowledge/query endpoint via modular QueryRouter (vector hybrid today; graph stub for future),
   instrumented with OpenTelemetry distributed tracing and graceful connector degradation.
 """
 
@@ -11,23 +11,28 @@ import logging
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Body, Depends, Header
+from fastapi import APIRouter, Body, Depends, Header, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from backend.app.auth import get_current_user, require_role
 from backend.app.models import AsyncSessionLocal
 from backend.app.schemas import HybridRetrievalResponse, KnowledgeQueryRequest
-from backend.app.services.hybrid_retrieval_engine import HybridRetrievalEngine
+from backend.app.services.query_router import (
+    RetrievalEngineKind,
+    VectorHybridEngine,
+    default_query_router,
+)
 from backend.app.tracing import trace_span
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-retrieval_engine = HybridRetrievalEngine()
-
-
-# GAP-F03: viewer role cannot submit new queries (US-016 RBAC requirement)
 _require_query_role = require_role(["admin", "user"])
+
+# Backward-compatible alias for tests that configure/patch the hybrid engine directly
+_vector_adapter = default_query_router._engines[RetrievalEngineKind.VECTOR]
+assert isinstance(_vector_adapter, VectorHybridEngine)
+retrieval_engine = _vector_adapter._inner
 
 
 @router.post("/query", response_model=HybridRetrievalResponse)
@@ -39,35 +44,44 @@ async def query_knowledge(
 ):
     start_time = datetime.datetime.now()
     trace_id = x_trace_id or f"trc-{uuid.uuid4().hex[:12]}"
-
-    # Extract validated requester identity from authenticated user payload
     requester_identity = current_user.get("sub", "user@example.com")
 
     span_attributes = {
         "query.length": len(body.query),
         "retrieval.top_k": body.top_k,
         "requester_identity": requester_identity,
+        "retrieval.engine": body.engine or "auto",
     }
 
     source_warnings: list = []
+    groundedness_score = None
+    engine_used = "vector"
+
     with trace_span("knowledge_api.retrieve", attributes=span_attributes, trace_id=trace_id):
-        # Execute Hybrid Search over SQLAlchemy database chunks
         async with AsyncSessionLocal() as session:
-            retrieval_result = await retrieval_engine.retrieve_with_availability(
-                session=session,
-                query=body.query,
-                requester_identity=requester_identity,
-                top_k=body.top_k,
-            )
+            try:
+                engine_used = default_query_router.resolve_engine(body.engine).value
+                retrieval_result = await default_query_router.retrieve(
+                    session=session,
+                    query=body.query,
+                    requester_identity=requester_identity,
+                    top_k=body.top_k,
+                    engine=body.engine,
+                )
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail=str(exc),
+                ) from exc
+
             evidence = retrieval_result.evidence
             source_warnings = list(retrieval_result.source_availability_warning or [])
 
-            # US-030: Analyze evidence freshness and conflicts
             from backend.app.services.freshness_service import FreshnessConflictEvaluator
+
             freshness_evaluator = FreshnessConflictEvaluator()
             analysis_res = freshness_evaluator.analyze(evidence)
 
-            # Update evidence items with freshness signals
             for ev in evidence:
                 sig = analysis_res.freshness_signals.get(ev.chunk_id)
                 if sig:
@@ -75,22 +89,27 @@ async def query_knowledge(
                     ev.last_modified_date = sig.last_modified_date
                     ev.staleness_warning = sig.staleness_warning
 
-            # GAP-F01: Assign query_id before the try block so it is always available for the response.
-            # This ensures the frontend can use query_id (not trace_id) for feedback submission.
             query_id = f"qry-{uuid.uuid4().hex[:12]}"
+            answer_text = f"Retrieved {len(evidence)} evidence items via {engine_used} engine."
 
-            # Persist Query and Evidence audit records for provenance tracking (US-013)
             try:
+                from backend.app.services.groundedness_service import (
+                    calculate_groundedness_and_used_chunks,
+                    persist_query_evidence_answer,
+                )
+
                 ev_dicts = [ev.model_dump() for ev in evidence]
-                from backend.app.services.groundedness_service import persist_query_evidence_answer
+                groundedness_score, updated_ev = calculate_groundedness_and_used_chunks(
+                    ev_dicts, answer_text
+                )
                 await persist_query_evidence_answer(
                     session=session,
                     query_id=query_id,
                     requester_identity=requester_identity,
                     query_text=body.query,
                     trace_id=trace_id,
-                    evidence_items=ev_dicts,
-                    answer_text=f"Retrieved {len(evidence)} evidence items.",
+                    evidence_items=updated_ev,
+                    answer_text=answer_text,
                 )
             except Exception as exc:
                 logger.warning(f"Audit persistence warning: {exc}")
@@ -110,13 +129,15 @@ async def query_knowledge(
     response = HybridRetrievalResponse(
         evidence=evidence,
         trace_id=trace_id,
-        query_id=query_id,  # GAP-F01: expose query_id for feedback capture (US-019)
+        query_id=query_id,
         execution_time_ms=exec_time_ms,
         query=body.query,
         total_retrieved=len(evidence),
         stale_count=analysis_res.overall_stale_count,
         conflicts=conflicts_schema,
         source_availability_warning=source_warnings,
+        groundedness_score=groundedness_score,
+        retrieval_engine=engine_used,
     )
 
     headers = {}
@@ -125,7 +146,10 @@ async def query_knowledge(
             async with AsyncSessionLocal() as session:
                 from sqlalchemy import func, select
                 from backend.app.models import Chunk
-                cnt_res = await session.execute(select(func.count()).select_from(Chunk).where(Chunk.deleted_at.is_(None)))
+
+                cnt_res = await session.execute(
+                    select(func.count()).select_from(Chunk).where(Chunk.deleted_at.is_(None))
+                )
                 total_chunks = cnt_res.scalar() or 0
                 if total_chunks == 0:
                     headers["X-VigilRAG-Warning"] = "corpus-empty"

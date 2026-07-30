@@ -2,6 +2,7 @@
 .*
 !.gitignore
 !.github/
+!.env.example
 
 # --- IDE ---
 *.swp

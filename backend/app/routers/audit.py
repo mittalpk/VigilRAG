@@ -269,7 +269,14 @@ async def export_audit_log(
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
     except RuntimeError as exc:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
+        detail = str(exc)
+        # Missing optional PDF dependency should be actionable, not a generic 500
+        code = (
+            status.HTTP_503_SERVICE_UNAVAILABLE
+            if "reportlab" in detail.lower()
+            else status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+        raise HTTPException(status_code=code, detail=detail) from exc
 
     payload = {
         "export_id": result["export_id"],

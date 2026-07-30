@@ -26,7 +26,7 @@ const KnowledgeAnimation = () => (
     <g transform="translate(250, 80)">
       <rect width="80" height="80" rx="40" className="node-rect" style={{stroke: '#4f8ef7'}} />
       <text x="40" y="40" className="node-text">Router</text>
-      <text x="40" y="55" className="node-sub">Regex</text>
+      <text x="40" y="55" className="node-sub">Hybrid</text>
     </g>
     <g transform="translate(420, 40)">
       <rect width="140" height="40" rx="6" className="node-rect" style={{stroke: '#34d399'}} />
@@ -87,12 +87,13 @@ import AuditLog from './pages/AuditLog'
 import FeedbackBar from './FeedbackBar'
 import FeedbackReview from './pages/FeedbackReview'
 import SourceManagement from './SourceManagement'
+import ModelCardViewer from './pages/ModelCardViewer'
 
 export default function App() {
   useEffect(() => {
     console.log('🚀 VigilRAG Production UI loaded correctly. Version: 1.0.1 (Final)');
   }, [])
-  const [activeTab, setActiveTab] = useState<'knowledge' | 'agent' | 'evaluation' | 'cost' | 'slo' | 'audit' | 'feedback-review' | 'sources' | 'documentation'>('knowledge')
+  const [activeTab, setActiveTab] = useState<'knowledge' | 'agent' | 'evaluation' | 'cost' | 'slo' | 'audit' | 'feedback-review' | 'sources' | 'documentation' | 'model-cards'>('knowledge')
 
   // Knowledge State
   const [query, setQuery] = useState('')
@@ -292,6 +293,13 @@ export default function App() {
             Audit Log
           </button>
           <button
+            id="tab-model-cards"
+            className={`tab ${activeTab === 'model-cards' ? 'active' : ''}`}
+            onClick={() => setActiveTab('model-cards')}
+          >
+            Model Cards
+          </button>
+          <button
             id="tab-feedback-review"
             className={`tab ${activeTab === 'feedback-review' ? 'active' : ''}`}
             onClick={() => setActiveTab('feedback-review')}
@@ -366,7 +374,7 @@ export default function App() {
                       <ul>
                         <li><strong>Data Contracts</strong>: Normalized JSON schema with stable IDs.</li>
                         <li><strong>Traceability</strong>: All retrieved facts are strictly traceable.</li>
-                        <li><strong>LLM Role</strong>: <em>🚫 None.</em> Thorough architectural trace verified this layer operates purely on deterministic regular expressions (`re.findall`) and NLP stop-word tokenization against cloud indices.</li>
+                        <li><strong>LLM Role</strong>: <em>None in this layer.</em> Hybrid vector + keyword (RRF) over Postgres/pgvector with optional cross-encoder reranking; synthesis happens in the Agent Orchestrator.</li>
                       </ul>
                     </div>
                   </div>
@@ -387,6 +395,18 @@ export default function App() {
                   citations={knowData.evidence}
                   guardrailFlags={(knowData as any).guardrail_flags}
                 />
+
+                {(knowData as any).groundedness_score != null && (
+                  <div className="mt-12" style={{ fontSize: '0.9rem', color: '#94a3b8' }}>
+                    <strong style={{ color: '#e2e8f0' }}>Groundedness score:</strong>{' '}
+                    {Number((knowData as any).groundedness_score).toFixed(2)}
+                    {(knowData as any).retrieval_engine && (
+                      <span style={{ marginLeft: 12 }}>
+                        Engine: <code style={{ color: '#38bdf8' }}>{(knowData as any).retrieval_engine}</code>
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 <FeedbackBar queryId={(knowData as any).query_id || knowData.trace_id} />
 
@@ -555,6 +575,12 @@ export default function App() {
           </div>
         )}
 
+        {activeTab === 'model-cards' && (
+          <div className="tab-content fade-in">
+            <ModelCardViewer />
+          </div>
+        )}
+
         {activeTab === 'feedback-review' && (
           <div className="tab-content fade-in">
             <FeedbackReview />
@@ -590,24 +616,21 @@ export default function App() {
                 <div className="faq-badge badge-info">Technical</div>
                 <h3 className="faq-question">Are we using a Vector Database for Semantic Search?</h3>
                 <p className="faq-answer">
-                  Currently, <strong>no</strong>. While the system performs the overarching workflow of Retrieval-Augmented Generation (RAG), the retrieval layer itself is powered by a high-speed Deterministic Search Engine, not dense vector embeddings. 
-                  <br/><br/>
-                  When you submit a query, the system strips out stop-words via NLP heuristics (`re.findall`) and searches the resulting tight keywords directly against the official GitHub Search API and via in-memory Regex matching against Azure Blob `.md` streams. There is currently no Pinecone, pgvector, or Milvus database integrated.
+                  <strong>Yes.</strong> Layer 2 runs hybrid retrieval: dense embeddings stored in{' '}
+                  <strong>Postgres + pgvector</strong>, fused with keyword/FTS via Reciprocal Rank Fusion (RRF),
+                  then optionally reranked with a cross-encoder. A modular <code>QueryRouter</code> selects the
+                  vector engine today and reserves a graph-engine stub for future GraphRAG (Phase 4+).
                 </p>
               </div>
 
-              {/* Expert / Architect */}
               <div className="faq-item">
                 <div className="faq-badge badge-accent" style={{background: 'rgba(124, 58, 237, 0.1)', color: '#a78bfa', border: '1px solid rgba(124,58,237,0.3)'}}>Expert / Architect</div>
-                <h3 className="faq-question">How can we scale and enhance the retrieval system in the future?</h3>
+                <h3 className="faq-question">How do we scale retrieval next?</h3>
                 <p className="faq-answer">
-                  The current regex/keyword-based retrieval limits the system's ability to understand the <em>meaning</em> of concepts (e.g., retrieving a document about "money" when the user asked about "currency"). 
-                  <br/><br/>
-                  <strong>Future Enhancement Path:</strong> Let's upgrade Layer 2 (The Knowledge API) to true dense vector retrieval. 
-                  <br/>1. <strong>Ingestion Pipeline:</strong> Implement a chron job that chunks Azure Wiki documents and GitHub repos into semantic blocks.
-                  <br/>2. <strong>Embedding Model:</strong> Use an embedding model (like `text-embedding-3-small` or `text-embedding-004`) to convert those chunks into dense vector coordinates.
-                  <br/>3. <strong>Vector Stores:</strong> Store these vectors in Azure AI Search or a dedicated vector DB like Qdrant/Milvus.
-                  <br/>4. <strong>Hybrid Search:</strong> Upgrade the router to perform Cosine Similarity searches against the vector DB, augmented with the existing exact-keyword match (BM25) to create a state-of-the-art Hybrid System.
+                  Vector graduation criteria are already evaluated (US-038): at pilot scale pgvector remains the
+                  default; a <code>VectorSearchBackend</code> abstraction (Pgvector / Qdrant / dual-write) is ready
+                  if latency or corpus triggers fire. GraphRAG joins via the same query-router protocol when
+                  relationship-shaped questions prove vector retrieval insufficient.
                 </p>
               </div>
 

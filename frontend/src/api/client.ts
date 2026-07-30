@@ -42,6 +42,36 @@ async function request<T>(url: string, options: RequestInit = {}, timeoutMs = 10
   }
 }
 
+async function requestText(url: string, options: RequestInit = {}, timeoutMs = 10000): Promise<string> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+  const headers = new Headers(options.headers || {})
+  if (authToken) {
+    headers.set('Authorization', `Bearer ${authToken}`)
+  }
+  try {
+    const res = await fetch(url, {
+      ...options,
+      headers,
+      signal: controller.signal,
+      credentials: 'include',
+    })
+    clearTimeout(timeoutId)
+    if (res.status === 401) {
+      localStorage.removeItem('vigilrag_token')
+      window.location.reload()
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`)
+    return res.text()
+  } catch (err: any) {
+    clearTimeout(timeoutId)
+    if (err.name === 'AbortError') {
+      throw new Error(`Request timed out after ${timeoutMs / 1000}s. Please check backend connectivity.`)
+    }
+    throw err
+  }
+}
+
 
 export interface UnifiedFact {
   fact: string;
@@ -76,6 +106,8 @@ export interface HybridRetrievalResponse {
   query: string;
   total_retrieved: number;
   source_availability_warning?: string[];
+  groundedness_score?: number;
+  retrieval_engine?: string;
 }
 
 export interface KnowledgeResponse {
@@ -86,6 +118,8 @@ export interface KnowledgeResponse {
   evidence?: EvidenceItem[];
   trace_id?: string;
   query_id?: string;  // GAP-F01: populated from HybridRetrievalResponse for feedback submission
+  groundedness_score?: number;
+  retrieval_engine?: string;
 }
 
 export interface EvaluationRunItem {
@@ -359,4 +393,7 @@ export const apiClient = {
       `${BACKEND_URL}/api/v1/admin/slo/evaluate-alert`,
       { method: 'POST' }
     ),
+
+  getLatestModelCard: () =>
+    requestText(`${BACKEND_URL}/api/v1/admin/model-cards/latest`),
 }

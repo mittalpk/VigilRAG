@@ -11,7 +11,7 @@ from datetime import datetime
 import logging
 import os
 import uuid
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Body, Depends, Header, HTTPException, status
 import httpx
@@ -24,7 +24,24 @@ from agent.app.tracing import trace_span
 
 router = APIRouter(prefix="/api/v1", tags=["query"])
 logger = logging.getLogger(__name__)
-guardrails_client = GuardrailsClient()
+
+
+class _LazyGuardrailsClient:
+    """Defer Presidio/spaCy init until first guardrails call so /health stays fast."""
+
+    def __init__(self):
+        self._inner: Optional[GuardrailsClient] = None
+
+    def _get(self) -> GuardrailsClient:
+        if self._inner is None:
+            self._inner = GuardrailsClient()
+        return self._inner
+
+    def __getattr__(self, name: str):
+        return getattr(self._get(), name)
+
+
+guardrails_client = _LazyGuardrailsClient()
 
 
 async def verify_internal_key(x_internal_api_key: str = Header(...)):

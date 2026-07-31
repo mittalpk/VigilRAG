@@ -124,23 +124,22 @@ export default function AuditLog() {
     <div className="card fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h2 className="card-title">Compliance Audit Log</h2>
+          <h2 className="card-title">Audit log</h2>
           <p className="card-hint">
-            Compliance-grade audit trail with full-text search, retention status, and CSV/PDF export (US-039 / NFR-004).
+            Searchable query trail with retention status and CSV/PDF export for compliance review.
           </p>
         </div>
-        <span className="badge badge-info">FR-008 / NFR-004</span>
       </div>
 
       {retention && (
         <div
           className="mt-16"
-          style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 6, padding: 12, fontSize: '0.85rem' }}
+          style={{ background: 'var(--color-surface-muted)', border: '1px solid var(--color-border)', borderRadius: 6, padding: 12, fontSize: '0.85rem' }}
         >
-          <strong style={{ color: '#e2e8f0' }}>Retention policy:</strong>{' '}
-          <span style={{ color: '#94a3b8' }}>{retention.retention_days} days</span>
+          <strong style={{ color: 'var(--color-text)' }}>Retention policy:</strong>{' '}
+          <span style={{ color: 'var(--color-muted)' }}>{retention.retention_days} days</span>
           {retention.latest_run && (
-            <span style={{ color: '#94a3b8', marginLeft: 12 }}>
+            <span style={{ color: 'var(--color-muted)', marginLeft: 12 }}>
               Last run: {retention.latest_run.status} — archived {retention.latest_run.records_archived ?? 0}{' '}
               ({retention.latest_run.started_at ? new Date(retention.latest_run.started_at).toLocaleString() : 'n/a'})
             </span>
@@ -150,7 +149,7 @@ export default function AuditLog() {
 
       <form onSubmit={handleFilterSubmit} className="mt-16" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <div className="form-group" style={{ flex: '1 1 200px' }}>
-          <label style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Requester Identity</label>
+          <label style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>Requester Identity</label>
           <input
             type="text"
             className="task-input"
@@ -162,7 +161,7 @@ export default function AuditLog() {
         </div>
 
         <div className="form-group" style={{ flex: '1 1 200px' }}>
-          <label style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Full-text search</label>
+          <label style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>Full-text search</label>
           <input
             type="text"
             className="task-input"
@@ -174,7 +173,7 @@ export default function AuditLog() {
         </div>
 
         <div className="form-group" style={{ flex: '1 1 150px' }}>
-          <label style={{ fontSize: '0.8rem', color: '#94a3b8' }}>From Date</label>
+          <label style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>From Date</label>
           <input
             type="date"
             className="task-input"
@@ -185,7 +184,7 @@ export default function AuditLog() {
         </div>
 
         <div className="form-group" style={{ flex: '1 1 150px' }}>
-          <label style={{ fontSize: '0.8rem', color: '#94a3b8' }}>To Date</label>
+          <label style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>To Date</label>
           <input
             type="date"
             className="task-input"
@@ -224,23 +223,23 @@ export default function AuditLog() {
       </form>
 
       {exportMsg && (
-        <div className="mt-12 p-12" style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 6 }}>
+        <div className="mt-12 p-12" style={{ background: 'var(--color-surface-muted)', border: '1px solid var(--color-border)', borderRadius: 6 }}>
           <span className="badge badge-info">Export</span>
-          <p style={{ color: '#cbd5e1', marginTop: 4, fontSize: '0.85rem' }}>{exportMsg}</p>
+          <p style={{ color: 'var(--color-text)', marginTop: 4, fontSize: '0.85rem' }}>{exportMsg}</p>
         </div>
       )}
 
       {error && (
         <div className="error-card mt-16 p-12">
           <span className="badge badge-error">Audit Fetch Error</span>
-          <p style={{ color: '#f87171', marginTop: 4 }}>{error}</p>
+          <p style={{ color: 'var(--color-error)', marginTop: 4 }}>{error}</p>
         </div>
       )}
 
       <div className="table-responsive mt-24">
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #334155', color: '#94a3b8', fontSize: '0.85rem' }}>
+            <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-muted)', fontSize: '0.85rem' }}>
               <th style={{ padding: '12px 8px' }}>Timestamp</th>
               <th style={{ padding: '12px 8px' }}>Query ID</th>
               <th style={{ padding: '12px 8px' }}>Requester Identity</th>
@@ -252,29 +251,29 @@ export default function AuditLog() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
+                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: 'var(--color-muted)' }}>
                   Loading audit logs...
                 </td>
               </tr>
             ) : queries.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: 'var(--color-muted)' }}>
                   No audit query records found matching filters.
                 </td>
               </tr>
             ) : (
               queries.map((item) => (
-                <tr key={item.query_id} style={{ borderBottom: '1px solid #1e293b', fontSize: '0.9rem' }}>
-                  <td style={{ padding: '10px 8px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                <tr key={item.query_id} style={{ borderBottom: '1px solid var(--color-surface-muted)', fontSize: '0.9rem' }}>
+                  <td style={{ padding: '10px 8px', color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
                     {item.timestamp ? new Date(item.timestamp).toLocaleString() : 'N/A'}
                   </td>
-                  <td style={{ padding: '10px 8px', fontFamily: 'monospace', color: '#38bdf8' }}>
+                  <td style={{ padding: '10px 8px', fontFamily: 'monospace', color: 'var(--color-accent)' }}>
                     {item.query_id}
                   </td>
-                  <td style={{ padding: '10px 8px', color: '#cbd5e1' }}>
+                  <td style={{ padding: '10px 8px', color: 'var(--color-text)' }}>
                     {item.requester_identity}
                   </td>
-                  <td style={{ padding: '10px 8px', color: '#f8fafc', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <td style={{ padding: '10px 8px', color: 'var(--color-ink)', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {item.text}
                   </td>
                   <td style={{ padding: '10px 8px' }}>
@@ -285,7 +284,7 @@ export default function AuditLog() {
                         </span>
                       ))
                     ) : (
-                      <span style={{ color: '#34d399', fontSize: '0.8rem' }}>Clean</span>
+                      <span style={{ color: 'var(--color-success)', fontSize: '0.8rem' }}>Clean</span>
                     )}
                   </td>
                   <td style={{ padding: '10px 8px' }}>
@@ -305,7 +304,7 @@ export default function AuditLog() {
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
-        <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--color-muted)' }}>
           Showing page {page} of {totalPages} ({total} total records)
         </span>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -327,10 +326,10 @@ export default function AuditLog() {
       </div>
 
       {(selectedQueryDetail || loadingDetail) && (
-        <div className="modal-backdrop fade-in" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="modal-card" style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', padding: '24px', maxWidth: '800px', width: '90%', maxHeight: '85vh', overflowY: 'auto' }}>
+        <div className="modal-backdrop fade-in" style={{ position: 'fixed', inset: 0, background: 'rgba(18, 32, 51, 0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="modal-card" style={{ background: 'var(--color-surface-muted)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '24px', maxWidth: '800px', width: '90%', maxHeight: '85vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, color: '#f8fafc' }}>Audit Query Detail Record</h3>
+              <h3 style={{ margin: 0, color: 'var(--color-ink)' }}>Audit Query Detail Record</h3>
               <button
                 className="btn-secondary"
                 style={{ padding: '4px 10px' }}
@@ -341,50 +340,50 @@ export default function AuditLog() {
             </div>
 
             {loadingDetail ? (
-              <p style={{ color: '#94a3b8' }}>Loading detail...</p>
+              <p style={{ color: 'var(--color-muted)' }}>Loading detail...</p>
             ) : selectedQueryDetail ? (
               <div>
-                <div style={{ background: '#1e293b', padding: '12px', borderRadius: '6px', marginBottom: '16px', fontSize: '0.9rem' }}>
+                <div style={{ background: 'var(--color-surface-muted)', padding: '12px', borderRadius: '6px', marginBottom: '16px', fontSize: '0.9rem' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                    <div><strong>Query ID:</strong> <code style={{ color: '#38bdf8' }}>{selectedQueryDetail.query_id}</code></div>
+                    <div><strong>Query ID:</strong> <code style={{ color: 'var(--color-accent)' }}>{selectedQueryDetail.query_id}</code></div>
                     <div><strong>Requester:</strong> {selectedQueryDetail.requester_identity}</div>
                     <div><strong>Timestamp:</strong> {selectedQueryDetail.timestamp}</div>
                     <div><strong>Groundedness Score:</strong> {selectedQueryDetail.groundedness_score ?? 'N/A'}</div>
                   </div>
                   <div style={{ marginTop: '8px' }}>
                     <strong>Query Text:</strong>
-                    <div style={{ color: '#cbd5e1', marginTop: '4px' }}>{selectedQueryDetail.text}</div>
+                    <div style={{ color: 'var(--color-text)', marginTop: '4px' }}>{selectedQueryDetail.text}</div>
                   </div>
                 </div>
 
-                <h4 style={{ color: '#f8fafc', marginBottom: '8px' }}>Synthesized Answer</h4>
-                <div style={{ background: '#1e293b', padding: '12px', borderRadius: '6px', marginBottom: '16px', color: '#e2e8f0', fontSize: '0.9rem' }}>
+                <h4 style={{ color: 'var(--color-ink)', marginBottom: '8px' }}>Synthesized Answer</h4>
+                <div style={{ background: 'var(--color-surface-muted)', padding: '12px', borderRadius: '6px', marginBottom: '16px', color: 'var(--color-text)', fontSize: '0.9rem' }}>
                   {selectedQueryDetail.answer_text || 'No answer generated.'}
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <h4 style={{ color: '#f8fafc', margin: 0 }}>Associated Evidence Chunks</h4>
+                  <h4 style={{ color: 'var(--color-ink)', margin: 0 }}>Associated Evidence Chunks</h4>
                   {selectedQueryDetail.truncated && (
                     <span className="badge badge-info">Capped at 50 records (truncated)</span>
                   )}
                 </div>
 
                 {selectedQueryDetail.evidence_items.length === 0 ? (
-                  <p style={{ color: '#64748b', fontSize: '0.9rem' }}>No evidence items recorded for this query.</p>
+                  <p style={{ color: 'var(--color-muted)', fontSize: '0.9rem' }}>No evidence items recorded for this query.</p>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {selectedQueryDetail.evidence_items.map((ev, idx) => (
-                      <div key={ev.id || idx} style={{ background: '#1e293b', border: '1px solid #334155', padding: '10px', borderRadius: '6px', fontSize: '0.85rem' }}>
+                      <div key={ev.id || idx} style={{ background: 'var(--color-surface-muted)', border: '1px solid var(--color-border)', padding: '10px', borderRadius: '6px', fontSize: '0.85rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                          <span style={{ color: '#38bdf8', fontWeight: 600 }}>Chunk ID: {ev.chunk_id}</span>
-                          <span style={{ color: '#94a3b8' }}>Relevance: {ev.relevance_score ?? 'N/A'}</span>
+                          <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Chunk ID: {ev.chunk_id}</span>
+                          <span style={{ color: 'var(--color-muted)' }}>Relevance: {ev.relevance_score ?? 'N/A'}</span>
                         </div>
                         {ev.source_url && (
-                          <div style={{ color: '#64748b', fontSize: '0.8rem', marginBottom: '4px' }}>
-                            Source: <a href={ev.source_url} target="_blank" rel="noreferrer" style={{ color: '#60a5fa' }}>{ev.source_url}</a>
+                          <div style={{ color: 'var(--color-muted)', fontSize: '0.8rem', marginBottom: '4px' }}>
+                            Source: <a href={ev.source_url} target="_blank" rel="noreferrer" style={{ color: 'var(--color-accent)' }}>{ev.source_url}</a>
                           </div>
                         )}
-                        <div style={{ color: '#cbd5e1' }}>{ev.content_excerpt}</div>
+                        <div style={{ color: 'var(--color-text)' }}>{ev.content_excerpt}</div>
                       </div>
                     ))}
                   </div>

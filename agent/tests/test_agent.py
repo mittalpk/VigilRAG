@@ -51,14 +51,17 @@ def test_health_check():
 
 def test_run_task_auth_success():
     """Accessing /run with valid internal API key should succeed (or invoke graph)."""
-    # Patch graph invocation so we don't call LLM
+    from unittest.mock import AsyncMock, MagicMock
+
     mock_response = {
         "final_answer": "This is a mock final answer",
         "results": [
             {"step": 1, "tool": "query_knowledge", "output": "some result"}
         ]
     }
-    with patch("agent.app.main.graph.ainvoke", return_value=mock_response):
+    mock_graph = MagicMock()
+    mock_graph.ainvoke = AsyncMock(return_value=mock_response)
+    with patch("agent.app.main.get_graph", return_value=mock_graph):
         response = client.post(
             "/run",
             headers={"X-Internal-API-Key": "secure-test-internal-api-key-9999"},

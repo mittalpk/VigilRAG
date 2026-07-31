@@ -11,8 +11,8 @@ const KnowledgeAnimation = () => (
   <svg viewBox="0 0 600 240" className="animated-diagram">
     <defs>
       <linearGradient id="lineGradInfo" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor="#4f8ef7" stopOpacity="0.2"/>
-        <stop offset="100%" stopColor="#4f8ef7" stopOpacity="0.8"/>
+        <stop offset="0%" stopColor="#0c6b6e" stopOpacity="0.2"/>
+        <stop offset="100%" stopColor="#0c6b6e" stopOpacity="0.85"/>
       </linearGradient>
     </defs>
     <path className="flow-path flow-forward" d="M 120 120 L 250 120" />
@@ -24,23 +24,23 @@ const KnowledgeAnimation = () => (
       <text x="50" y="24" className="node-text">User Query</text>
     </g>
     <g transform="translate(250, 80)">
-      <rect width="80" height="80" rx="40" className="node-rect" style={{stroke: '#4f8ef7'}} />
+      <rect width="80" height="80" rx="40" className="node-rect" style={{stroke: '#0c6b6e'}} />
       <text x="40" y="40" className="node-text">Router</text>
       <text x="40" y="55" className="node-sub">Hybrid</text>
     </g>
     <g transform="translate(420, 40)">
-      <rect width="140" height="40" rx="6" className="node-rect" style={{stroke: '#34d399'}} />
+      <rect width="140" height="40" rx="6" className="node-rect" style={{stroke: 'var(--color-success)'}} />
       <text x="70" y="24" className="node-text">GitHub Repos</text>
     </g>
     <g transform="translate(420, 160)">
-      <rect width="140" height="40" rx="6" className="node-rect" style={{stroke: '#34d399'}} />
+      <rect width="140" height="40" rx="6" className="node-rect" style={{stroke: 'var(--color-success)'}} />
       <text x="70" y="24" className="node-text">Azure Blob</text>
     </g>
     <g transform="translate(370, 70)">
-      <circle cx="0" cy="0" r="4" fill="#34d399" className="flow-dot" />
+      <circle cx="0" cy="0" r="4" fill="var(--color-success)" className="flow-dot" />
     </g>
     <g transform="translate(370, 170)">
-      <circle cx="0" cy="0" r="4" fill="#34d399" className="flow-dot" />
+      <circle cx="0" cy="0" r="4" fill="var(--color-success)" className="flow-dot" />
     </g>
   </svg>
 );
@@ -64,17 +64,17 @@ const AgentAnimation = () => (
       <text x="80" y="65" className="node-sub llm-badge">(Low Latency)</text>
     </g>
     <g transform="translate(440, 80)">
-      <rect width="140" height="80" rx="8" className="node-rect" style={{stroke: '#7c3aed'}} />
+      <rect width="140" height="80" rx="8" className="node-rect" style={{stroke: '#0c6b6e'}} />
       <text x="70" y="30" className="node-text">2. Synthesizer</text>
       <text x="70" y="50" className="node-sub">Gemini 2.5 Pro</text>
       <text x="70" y="65" className="node-sub llm-badge">(High Reasoning)</text>
     </g>
     <g transform="translate(320, 25)">
-      <rect width="140" height="30" rx="15" className="node-rect" style={{stroke: '#34d399'}} />
+      <rect width="140" height="30" rx="15" className="node-rect" style={{stroke: 'var(--color-success)'}} />
       <text x="70" y="19" className="node-text">Execute Tools</text>
     </g>
     <g transform="translate(640, 100)">
-      <rect width="40" height="40" rx="20" className="node-rect" style={{stroke: '#cbd5e1'}} />
+      <rect width="40" height="40" rx="20" className="node-rect" style={{stroke: 'var(--color-text)'}} />
       <text x="20" y="24" className="node-text">End</text>
     </g>
   </svg>
@@ -158,11 +158,13 @@ export default function App() {
     e.preventDefault()
     setLoadingAuth(true); setError(null)
     try {
-      const { token } = await apiClient.login(loginForm)
+      const res = await apiClient.login(loginForm)
+      const token = res.token || res.access_token
+      if (!token) throw new Error('No token returned')
       apiClient.setToken(token)
       setIsLoggedIn(true)
     } catch (err: any) {
-      setError('Login failed: Invalid credentials.')
+      setError(err?.message ? `Login failed: ${err.message}` : 'Login failed: Invalid credentials.')
     } finally {
       setLoadingAuth(false)
     }
@@ -177,44 +179,64 @@ export default function App() {
   if (!isLoggedIn) {
     return (
       <div className="login-page">
-        <div className="login-card fade-in">
-          <div className="logo mb-24">
-            <div className="logo-icon">Ω</div>
-            <div className="logo-title">VigilRAG</div>
+        <aside className="login-brand">
+          <div className="login-brand-inner">
+            <div className="logo">
+              <div className="logo-icon">V</div>
+              <div>
+                <div className="logo-title">VigilRAG</div>
+                <div className="logo-sub">Governance console</div>
+              </div>
+            </div>
+            <p className="login-brand-copy">
+              Enterprise retrieval with policy gates, auditability, and grounded answers for regulated teams.
+            </p>
           </div>
-          <h2 className="card-title">Secured Access</h2>
-          <p className="card-hint">Please enter your administrative credentials to continue.</p>
-          
-          <form className="mt-24" onSubmit={handleLogin}>
-            <div className="form-group">
-              <label>Username</label>
-              <input 
-                type="text" 
-                className="task-input" 
-                autoComplete="username"
-                value={loginForm.username}
-                onChange={e => setLoginForm({...loginForm, username: e.target.value})}
-                required 
-              />
-            </div>
-            <div className="form-group mt-16">
-              <label>Password</label>
-              <input 
-                type="password" 
-                className="task-input" 
-                autoComplete="current-password"
-                value={loginForm.password}
-                onChange={e => setLoginForm({...loginForm, password: e.target.value})}
-                required 
-              />
-            </div>
-            
-            {error && <p className="error-text mt-16">{error}</p>}
-            
-            <button className="btn-primary mt-24 w-full" type="submit" disabled={loadingAuth}>
-              {loadingAuth ? 'Verifying...' : 'Login to Console'}
-            </button>
-          </form>
+        </aside>
+        <div className="login-panel">
+          <div className="login-card">
+            <h2 className="card-title">Sign in</h2>
+            <p className="card-hint">
+              Use your console credentials to access knowledge, agents, and compliance tooling.
+            </p>
+
+            <form className="mt-24" onSubmit={handleLogin}>
+              <div className="form-group">
+                <label htmlFor="login-username">Username</label>
+                <input
+                  id="login-username"
+                  type="text"
+                  className="task-input"
+                  autoComplete="username"
+                  value={loginForm.username}
+                  onChange={e => setLoginForm({...loginForm, username: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group mt-16">
+                <label htmlFor="login-password">Password</label>
+                <input
+                  id="login-password"
+                  type="password"
+                  className="task-input"
+                  autoComplete="current-password"
+                  value={loginForm.password}
+                  onChange={e => setLoginForm({...loginForm, password: e.target.value})}
+                  required
+                />
+              </div>
+
+              {error && <p className="error-text mt-16">{error}</p>}
+
+              <button className="btn-primary mt-24 w-full" type="submit" disabled={loadingAuth}>
+                {loadingAuth ? 'Verifying…' : 'Continue'}
+              </button>
+            </form>
+
+            <p className="login-footnote">
+              Need access? Ask your platform administrator for console credentials.
+            </p>
+          </div>
         </div>
       </div>
     )
@@ -224,13 +246,20 @@ export default function App() {
     <div className="app">
       <header className="app-header">
         <div className="logo">
-          <div className="logo-icon">Ω</div>
-          <div className="logo-title">VigilRAG</div>
+          <div className="logo-icon">V</div>
+          <div>
+            <div className="logo-title">VigilRAG</div>
+            <div className="logo-sub">Operations console</div>
+          </div>
         </div>
-        <div className="header-status">
-          <button className="btn-link logout-btn" onClick={handleLogout}>Logout</button>
-          <div className="status-dot" />
-          Live · Internal Auth Enabled
+        <div className="header-actions">
+          <div className="header-status">
+            <div className="status-dot" />
+            Live · Auth enabled
+          </div>
+          <button className="btn-link logout-btn" onClick={handleLogout} type="button">
+            Sign out
+          </button>
         </div>
       </header>
 
@@ -241,56 +270,56 @@ export default function App() {
             className={`tab ${activeTab === 'knowledge' ? 'active' : ''}`}
             onClick={() => setActiveTab('knowledge')}
           >
-            Knowledge API
+            Knowledge
           </button>
           <button
             id="tab-agent"
             className={`tab ${activeTab === 'agent' ? 'active' : ''}`}
             onClick={() => setActiveTab('agent')}
           >
-            Multi-Agent Orchestrator
+            Agents
           </button>
           <button
             id="tab-evaluation"
             className={`tab ${activeTab === 'evaluation' ? 'active' : ''}`}
             onClick={() => setActiveTab('evaluation')}
           >
-            Evaluation Harness
+            Evaluation
           </button>
           <button
             id="tab-cost"
             className={`tab ${activeTab === 'cost' ? 'active' : ''}`}
             onClick={() => setActiveTab('cost')}
           >
-            Cost Dashboard
+            Cost
           </button>
           <button
             id="tab-slo"
             className={`tab ${activeTab === 'slo' ? 'active' : ''}`}
             onClick={() => setActiveTab('slo')}
           >
-            SLO Dashboard
+            SLO
           </button>
           <button
             id="tab-feedback"
             className={`tab ${activeTab === 'feedback-review' ? 'active' : ''}`}
             onClick={() => setActiveTab('feedback-review')}
           >
-            Feedback Queue
+            Feedback
           </button>
           <button
             id="tab-sources"
             className={`tab ${activeTab === 'sources' ? 'active' : ''}`}
             onClick={() => setActiveTab('sources')}
           >
-            Source Management
+            Sources
           </button>
           <button
             id="tab-audit"
             className={`tab ${activeTab === 'audit' ? 'active' : ''}`}
             onClick={() => setActiveTab('audit')}
           >
-            Audit Log
+            Audit
           </button>
           <button
             id="tab-model-cards"
@@ -300,27 +329,19 @@ export default function App() {
             Model Cards
           </button>
           <button
-            id="tab-feedback-review"
-            className={`tab ${activeTab === 'feedback-review' ? 'active' : ''}`}
-            onClick={() => setActiveTab('feedback-review')}
-          >
-            Feedback Review
-          </button>
-          <button
             id="tab-documentation"
             className={`tab ${activeTab === 'documentation' ? 'active' : ''}`}
             onClick={() => setActiveTab('documentation')}
           >
-            Documentation
+            Docs
           </button>
         </div>
 
         {activeTab === 'knowledge' && (
           <div className="card fade-in">
-            <h2 className="card-title">Knowledge Retrieval API</h2>
+            <h2 className="card-title">Knowledge search</h2>
             <p className="card-hint">
-              Unified semantic retrieval across GitHub repositories, Azure Blob Storage, and SQL databases.
-              Returns structured, traceable JSON with stable source IDs — ready for LLM consumption or downstream automation.
+              Semantic retrieval across repositories, document stores, and databases — with citations and stable source IDs.
             </p>
             <textarea
               id="knowledge-query-input"
@@ -351,8 +372,8 @@ export default function App() {
             {showDoc && (
               <div className="doc-panel fade-in">
                 <div className="doc-header">
-                  <h4>Layer 2 — Knowledge API: Unified Semantic Retrieval</h4>
-                  <span className="badge badge-info">System Boundary</span>
+                  <h4>How knowledge search works</h4>
+                  <span className="badge badge-info">Overview</span>
                 </div>
                 
                 <div className="doc-content">
@@ -397,12 +418,12 @@ export default function App() {
                 />
 
                 {(knowData as any).groundedness_score != null && (
-                  <div className="mt-12" style={{ fontSize: '0.9rem', color: '#94a3b8' }}>
-                    <strong style={{ color: '#e2e8f0' }}>Groundedness score:</strong>{' '}
+                  <div className="mt-12" style={{ fontSize: '0.9rem', color: 'var(--color-muted)' }}>
+                    <strong style={{ color: 'var(--color-text)' }}>Groundedness score:</strong>{' '}
                     {Number((knowData as any).groundedness_score).toFixed(2)}
                     {(knowData as any).retrieval_engine && (
                       <span style={{ marginLeft: 12 }}>
-                        Engine: <code style={{ color: '#38bdf8' }}>{(knowData as any).retrieval_engine}</code>
+                        Engine: <code style={{ color: 'var(--color-accent)' }}>{(knowData as any).retrieval_engine}</code>
                       </span>
                     )}
                   </div>
@@ -413,13 +434,13 @@ export default function App() {
 
 
                 <details className="mt-16" style={{ cursor: 'pointer', opacity: 0.85 }}>
-                  <summary style={{ fontWeight: 600, color: '#94a3b8' }}>Debug & Execution Trace</summary>
+                  <summary style={{ fontWeight: 600, color: 'var(--color-muted)' }}>Debug & Execution Trace</summary>
 
-                  <div className="meta-grid mt-12" style={{ padding: '12px', background: '#0f172a', borderRadius: '6px' }}>
+                  <div className="meta-grid mt-12" style={{ padding: '12px', background: 'var(--color-surface-muted)', borderRadius: '6px' }}>
                     {knowData.trace_id && (
                       <div className="meta-row">
                         <span className="source-tag">Trace ID</span>
-                        <code style={{ color: '#38bdf8' }}>{knowData.trace_id}</code>
+                        <code style={{ color: 'var(--color-accent)' }}>{knowData.trace_id}</code>
                       </div>
                     )}
 
@@ -440,11 +461,9 @@ export default function App() {
 
         {activeTab === 'agent' && (
           <div className="card fade-in">
-            <h2 className="card-title">Multi-Agent Reasoning Engine</h2>
+            <h2 className="card-title">Agent orchestrator</h2>
             <p className="card-hint">
-              Powered by LangGraph. Decomposes complex, multi-source queries into a
-              stateful plan → execute → respond workflow. Uses the Knowledge API as a
-              controlled tool — grounded synthesis only, no hallucination.
+              Breaks multi-source questions into a plan, retrieves grounded evidence, and returns a cited answer.
             </p>
             <textarea
               id="agent-task-input"
@@ -462,7 +481,7 @@ export default function App() {
                 onClick={runAgentTask}
                 disabled={loadingAgent || !task.trim()}
               >
-                {loadingAgent ? 'Orchestrating agent…' : 'Delegate to Agent'}
+                {loadingAgent ? 'Running…' : 'Run agent'}
               </button>
               <button className="btn-secondary" onClick={clearAgent} disabled={loadingAgent}>
                 Clear
@@ -475,8 +494,8 @@ export default function App() {
             {showDoc && (
               <div className="doc-panel fade-in">
                 <div className="doc-header">
-                  <h4>Layer 3 — Agent Orchestration: Decision & Reasoning Engine</h4>
-                  <span className="badge badge-success">LangGraph Stateful</span>
+                  <h4>How the agent works</h4>
+                  <span className="badge badge-success">Orchestration</span>
                 </div>
 
                 <div className="doc-content">
@@ -486,19 +505,19 @@ export default function App() {
 
                   <div className="doc-grid-cols">
                     <div className="doc-section">
-                      <h5>Architectural Role</h5>
-                      <p>The multi-agent system is a <strong>stateful orchestration layer</strong> that delegates knowledge retrieval and synthesizes answers.</p>
+                      <h5>What it does</h5>
+                      <p>A <strong>stateful orchestration layer</strong> that plans retrieval steps and synthesizes a cited answer from evidence.</p>
                       <ul>
-                        <li><strong>State Management</strong>: LangGraph maintains graph context continuously.</li>
-                        <li><strong>Workflow Control</strong>: Decides tool calls through loops.</li>
+                        <li><strong>Session state</strong>: Keeps context across plan → retrieve → answer steps.</li>
+                        <li><strong>Controlled tools</strong>: Only calls approved knowledge and utility tools.</li>
                       </ul>
                     </div>
                     <div className="doc-section">
-                      <h5>Dual-LLM Node Architecture</h5>
+                      <h5>Pipeline</h5>
                       <ul>
-                        <li><strong>1. Planner Node</strong>: 🤖 <em>Gemini 2.5 Flash</em> — Decomposes tasks with ultra-low latency. Decides parallel tools needed. Iterates until finished.</li>
-                        <li><strong>2. Tool Execution</strong>: Triggers parallel `asyncio.gather` tool runs.</li>
-                        <li><strong>3. Synthesizer</strong>: 🤖 <em>Gemini 2.5 Pro</em> — Dedicated heavy-lift reasoning node to formulate final answers from facts.</li>
+                        <li><strong>1. Planner</strong>: Decomposes the task and chooses retrieval steps.</li>
+                        <li><strong>2. Retrieval</strong>: Runs knowledge searches against registered sources.</li>
+                        <li><strong>3. Synthesizer</strong>: Builds the final answer from retrieved facts only.</li>
                       </ul>
                     </div>
                   </div>
@@ -519,7 +538,7 @@ export default function App() {
             {agentData && !loadingAgent && (
               <div className="results-container mt-24 fade-in">
                 <div className="agent-meta">
-                  <span className="badge badge-info">✓ LangGraph Complete</span>
+                  <span className="badge badge-info">Complete</span>
                   <span className="badge badge-success">{agentData.steps.length} tools executed</span>
                 </div>
 
@@ -547,7 +566,7 @@ export default function App() {
         {error && (
           <div className="card error-card fade-in mt-16">
             <span className="badge badge-error">Error</span>
-            <p style={{ marginTop: 8, color: '#f87171', fontSize: '0.9rem' }}>{error}</p>
+            <p style={{ marginTop: 8, color: 'var(--color-error)', fontSize: '0.9rem' }}>{error}</p>
           </div>
         )}
 
@@ -595,9 +614,9 @@ export default function App() {
 
         {activeTab === 'documentation' && (
           <div className="card fade-in">
-            <h2 className="card-title">System Architecture & FAQ</h2>
+            <h2 className="card-title">Documentation</h2>
             <p className="card-hint">
-              Detailed knowledgebase covering how VigilRAG operates, its current retrieval mechanisms, and future scalability.
+              How VigilRAG retrieves knowledge, keeps answers grounded, and scales as corpus size grows.
             </p>
 
             <div className="faq-container mt-16">
@@ -624,13 +643,13 @@ export default function App() {
               </div>
 
               <div className="faq-item">
-                <div className="faq-badge badge-accent" style={{background: 'rgba(124, 58, 237, 0.1)', color: '#a78bfa', border: '1px solid rgba(124,58,237,0.3)'}}>Expert / Architect</div>
+                <div className="faq-badge badge-accent" style={{background: 'var(--color-accent-soft)', color: 'var(--color-accent)', border: '1px solid rgba(12,107,110,0.3)'}}>Expert / Architect</div>
                 <h3 className="faq-question">How do we scale retrieval next?</h3>
                 <p className="faq-answer">
-                  Vector graduation criteria are already evaluated (US-038): at pilot scale pgvector remains the
-                  default; a <code>VectorSearchBackend</code> abstraction (Pgvector / Qdrant / dual-write) is ready
-                  if latency or corpus triggers fire. GraphRAG joins via the same query-router protocol when
-                  relationship-shaped questions prove vector retrieval insufficient.
+                  At current pilot scale, Postgres with pgvector remains the default vector store.
+                  A pluggable search backend (pgvector, Qdrant, or dual-write) is available if latency
+                  or corpus size requires it. Graph-style retrieval can join through the same query
+                  router when relationship-shaped questions need more than vector search.
                 </p>
               </div>
 

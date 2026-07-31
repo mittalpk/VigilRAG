@@ -44,19 +44,19 @@ export default function FeedbackBar({ queryId }: FeedbackBarProps) {
   }
 
   return (
-    <div className="feedback-bar mt-16 p-12" style={{ background: '#1e293b', borderRadius: '6px', border: '1px solid #334155' }}>
+    <div className="feedback-bar mt-16 p-12" style={{ background: 'var(--color-surface-muted)', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
       {submitted ? (
-        <div style={{ color: '#34d399', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ color: 'var(--color-success)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
           ✓ Thanks for your feedback! {rating === 'positive' ? '👍' : '👎'}
         </div>
       ) : (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Was this answer helpful?</span>
+            <span style={{ fontSize: '0.85rem', color: 'var(--color-muted)' }}>Was this answer helpful?</span>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 className={`btn-secondary ${rating === 'positive' ? 'active' : ''}`}
-                style={{ padding: '4px 10px', fontSize: '0.9rem', borderColor: rating === 'positive' ? '#34d399' : undefined }}
+                style={{ padding: '4px 10px', fontSize: '0.9rem', borderColor: rating === 'positive' ? 'var(--color-success)' : undefined }}
                 onClick={() => handleRatingClick('positive')}
                 disabled={submitting}
               >
@@ -64,7 +64,7 @@ export default function FeedbackBar({ queryId }: FeedbackBarProps) {
               </button>
               <button
                 className={`btn-secondary ${rating === 'negative' ? 'active' : ''}`}
-                style={{ padding: '4px 10px', fontSize: '0.9rem', borderColor: rating === 'negative' ? '#f87171' : undefined }}
+                style={{ padding: '4px 10px', fontSize: '0.9rem', borderColor: rating === 'negative' ? 'var(--color-error)' : undefined }}
                 onClick={() => handleRatingClick('negative')}
                 disabled={submitting}
               >
@@ -101,7 +101,7 @@ export default function FeedbackBar({ queryId }: FeedbackBarProps) {
       )}
 
       {error && (
-        <div style={{ color: '#f87171', fontSize: '0.8rem', marginTop: '4px' }}>
+        <div style={{ color: 'var(--color-error)', fontSize: '0.8rem', marginTop: '4px' }}>
           {error}
         </div>
       )}

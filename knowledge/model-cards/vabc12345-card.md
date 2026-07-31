@@ -1,6 +1,6 @@
 # Model / System Card — VigilRAG Pipeline vabc123456789def
 
-**Published Date:** 2026-07-29 21:00:24 UTC  
+**Published Date:** 2026-07-30 22:39:26 UTC  
 **Pipeline Version (Git SHA):** `abc123456789def`  
 **Evaluation Run ID:** `eval-run-abc12345`  
 **Dataset Version:** `v1.0`  

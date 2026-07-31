@@ -23,8 +23,18 @@ class Settings(BaseSettings):
     azure_client_id: str = "04b07795-8ddb-461a-bbee-02f9e1bf7b46"  # Microsoft's well-known public Azure CLI client ID
     skip_auth: bool = True  # Temporary bypass until Frontend MSAL integration is built
 
-    # CORS
-    allowed_origins: List[str] = []
+    # CORS — local demo defaults; override with ALLOWED_ORIGINS JSON list in env
+    allowed_origins: List[str] = Field(
+        default_factory=lambda: [
+            "http://localhost:15173",
+            "http://127.0.0.1:15173",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:18000",
+            "http://127.0.0.1:18000",
+        ],
+        alias="ALLOWED_ORIGINS",
+    )
 
     # LLM
     openai_api_key: SecretStr = SecretStr("")

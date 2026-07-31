@@ -301,5 +301,18 @@ def build_graph() -> Any:
     return workflow.compile()
 
 
-# ── Singleton Graph ───────────────────────────────────────────────────────────
-graph = build_graph()
+# ── Lazy singleton (allows /health without GOOGLE_API_KEY; LLM routes fail until configured) ──
+_graph = None
+
+
+def get_graph() -> Any:
+    global _graph
+    if _graph is None:
+        _graph = build_graph()
+    return _graph
+
+
+def __getattr__(name: str) -> Any:
+    if name == "graph":
+        return get_graph()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

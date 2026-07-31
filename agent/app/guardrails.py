@@ -86,6 +86,9 @@ class GuardrailsClient:
     def _init_presidio(self) -> None:
         """Initializes Presidio Analyzer and Anonymizer engines.
 
+        Prefer ``en_core_web_sm`` (bundled in the agent image) so first boot does not
+        download ``en_core_web_lg`` (~400MB). Override with PRESIDIO_SPACY_MODEL.
+
         GAP-N03: On failure, logs at ERROR level and sets _presidio_unavailable=True so that
         pii_redact() raises HTTP 503 (fail-closed) rather than silently falling back to the
         regex engine, which gives far weaker PII coverage (US-026 / NFR-003).
@@ -95,10 +98,18 @@ class GuardrailsClient:
         self._presidio_unavailable = False
         try:
             from presidio_analyzer import AnalyzerEngine
+            from presidio_analyzer.nlp_engine import NlpEngineProvider
             from presidio_anonymizer import AnonymizerEngine
-            self.presidio_analyzer = AnalyzerEngine()
+
+            model_name = os.getenv("PRESIDIO_SPACY_MODEL", "en_core_web_sm")
+            nlp_configuration = {
+                "nlp_engine_name": "spacy",
+                "models": [{"lang_code": "en", "model_name": model_name}],
+            }
+            nlp_engine = NlpEngineProvider(nlp_configuration=nlp_configuration).create_engine()
+            self.presidio_analyzer = AnalyzerEngine(nlp_engine=nlp_engine)
             self.presidio_anonymizer = AnonymizerEngine()
-            logger.info("Microsoft Presidio PII engines initialized successfully.")
+            logger.info(f"Microsoft Presidio PII engines initialized with spaCy model '{model_name}'.")
         except ModuleNotFoundError:
             # Presidio packages not installed in local environment (e.g. lightweight CI runner); fall back to built-in rule engine
             self._presidio_unavailable = False

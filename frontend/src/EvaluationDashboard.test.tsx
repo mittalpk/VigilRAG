@@ -46,9 +46,9 @@ describe('EvaluationDashboard Component', () => {
     render(<EvaluationDashboard />)
 
     await waitFor(() => {
-      expect(screen.getByText(/✓ PASSED CI GATE/i)).toBeDefined()
-      expect(screen.getByText('92.0%')).toBeDefined()
-      expect(screen.getByText('a1b2c3d')).toBeDefined()
+      expect(screen.getByText(/Quality gate passed/i)).toBeDefined()
+      expect(screen.getAllByText('92.0%').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('a1b2c3d').length).toBeGreaterThan(0)
     })
   })
 })

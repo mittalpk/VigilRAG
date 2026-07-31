@@ -297,6 +297,88 @@ export interface SLODashboardData {
   daily_uptime: SLODailyPoint[]
 }
 
+export interface SourceItem {
+  id: string
+  name: string
+  source_type: string
+  endpoint_url: string
+  secret_reference: string
+  owner_email: string
+  sensitivity_level: string
+  sensitivity_signed_off: boolean
+  refresh_cadence_minutes: number
+  status: string
+  indexing_scope: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  last_indexed_at?: string
+}
+
+export interface SourceTypeInfo {
+  type_id: string
+  display_name: string
+  description: string
+  supported: boolean
+}
+
+export interface SourceListResponse {
+  items: SourceItem[]
+  total: number
+  page?: number
+  size?: number
+}
+
+export interface SourceCreateRequest {
+  name: string
+  source_type: string
+  endpoint_url: string
+  secret_reference: string
+  owner_email: string
+  sensitivity_level: string
+  sensitivity_signed_off: boolean
+  refresh_cadence_minutes: number
+  indexing_scope: string
+}
+
+/** Like request(), but surfaces FastAPI `detail` on error responses. */
+async function requestWithDetail<T>(url: string, options: RequestInit = {}, timeoutMs = 15000): Promise<T> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+  const headers = new Headers(options.headers || {})
+  headers.set('Content-Type', 'application/json')
+  if (authToken) headers.set('Authorization', `Bearer ${authToken}`)
+  try {
+    const res = await fetch(url, {
+      ...options,
+      headers,
+      signal: controller.signal,
+      credentials: 'include',
+    })
+    clearTimeout(timeoutId)
+    if (res.status === 401) {
+      localStorage.removeItem('vigilrag_token')
+      window.location.reload()
+    }
+    if (!res.ok) {
+      let detail = `HTTP ${res.status}: ${res.statusText}`
+      try {
+        const body = await res.json()
+        if (typeof body?.detail === 'string') detail = body.detail
+        else if (Array.isArray(body?.detail)) detail = body.detail.map((d: { msg?: string }) => d.msg || JSON.stringify(d)).join('; ')
+      } catch { /* non-JSON error body */ }
+      throw new Error(detail)
+    }
+    return res.json() as Promise<T>
+  } catch (err: any) {
+    clearTimeout(timeoutId)
+    if (err.name === 'AbortError') {
+      throw new Error(`Request timed out after ${timeoutMs / 1000}s. Please check backend connectivity.`)
+    }
+    throw err
+  }
+}
+
 export const apiClient = {
   setToken: (token: string | null) => {
     authToken = token
@@ -396,4 +478,28 @@ export const apiClient = {
 
   getLatestModelCard: () =>
     requestText(`${BACKEND_URL}/api/v1/admin/model-cards/latest`),
+
+  listSources: (includeInactive = true) =>
+    request<SourceListResponse>(
+      `${BACKEND_URL}/api/v1/admin/sources?include_inactive=${includeInactive}`
+    ),
+
+  getSourceTypes: () =>
+    request<SourceTypeInfo[]>(`${BACKEND_URL}/api/v1/admin/sources/types`),
+
+  createSource: (body: SourceCreateRequest) =>
+    requestWithDetail<SourceItem>(`${BACKEND_URL}/api/v1/admin/sources`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  triggerSourceIndex: (id: string) =>
+    request<SourceItem>(`${BACKEND_URL}/api/v1/admin/sources/${id}/trigger-index`, {
+      method: 'POST',
+    }),
+
+  deactivateSource: (id: string) =>
+    request<SourceItem>(`${BACKEND_URL}/api/v1/admin/sources/${id}`, {
+      method: 'DELETE',
+    }),
 }

@@ -86,9 +86,13 @@ docker compose up --build
 
 | Service | URL |
 |---|---|
-| Frontend Dashboard | `http://localhost:5173` |
-| Backend API (Swagger) | `http://localhost:8000/docs` |
-| Agent Service | `http://localhost:8001/docs` |
+| Frontend Dashboard | `http://localhost:15173` |
+| Backend API (Swagger) | `http://localhost:18000/docs` |
+| Agent Service | `http://localhost:18001/docs` |
+| Jaeger UI | `http://localhost:16687` |
+
+> Host ports are offset (`18000`/`18001`/`15173`/`16687`) so VigilRAG can run alongside other local stacks that already bind `:8000` / Jaeger `:4317`.
+
 
 Log in with the seeded admin identity, then use **Knowledge** → query → citations/feedback, **Audit Log** for export, and admin dashboards as needed.
 

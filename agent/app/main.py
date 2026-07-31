@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from .graph import graph
+from .graph import get_graph
 from .client import http_client
 from .config import settings
 
@@ -70,6 +70,13 @@ async def health():
 @app.post("/run")
 async def run_task(body: TaskRequest, credentials: str = Depends(verify_internal_key)):
     from langchain_core.messages import HumanMessage
+    try:
+        graph = get_graph()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Agent LLM graph unavailable — set GOOGLE_API_KEY/GEMINI_API_KEY: {exc}",
+        ) from exc
     result = await graph.ainvoke({
         "task": body.task,
         "messages": [HumanMessage(content=body.task)],

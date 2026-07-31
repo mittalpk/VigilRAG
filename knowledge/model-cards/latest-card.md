@@ -1,6 +1,6 @@
 # Model / System Card — VigilRAG Pipeline vv1.0.0-release
 
-**Published Date:** 2026-07-29 21:00:24 UTC  
+**Published Date:** 2026-07-30 22:39:26 UTC  
 **Pipeline Version (Git SHA):** `v1.0.0-release`  
 **Evaluation Run ID:** `eval-run-v1.0.0-r`  
 **Dataset Version:** `v1.0`  

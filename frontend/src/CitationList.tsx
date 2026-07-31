@@ -73,12 +73,12 @@ export function getGuardrailMessage(flag: string): string {
 export function getSourceBadge(item: CitationItem): { label: string; color: string; icon: string } {
   const type = (item.source_type || item.source_id || '').toLowerCase()
   if (type.includes('wiki') || type.includes('confluence')) {
-    return { label: 'Wiki Source', color: '#10b981', icon: '📖' }
+    return { label: 'Wiki Source', color: 'var(--color-success)', icon: '📖' }
   }
   if (type.includes('db') || type.includes('postgres') || type.includes('sql')) {
-    return { label: 'DB Source', color: '#8b5cf6', icon: '🗄️' }
+    return { label: 'DB Source', color: 'var(--color-accent)', icon: '🗄️' }
   }
-  return { label: 'GitHub Source', color: '#3b82f6', icon: '💻' }
+  return { label: 'GitHub Source', color: 'var(--color-ink)', icon: '💻' }
 }
 
 export function getFileName(item: CitationItem): string {
@@ -107,7 +107,7 @@ export default function CitationList({ citations = [], guardrailFlags = [], conf
 
   return (
     <div className="citation-list-wrapper mt-16">
-      {/* 1. Freshness & Conflict Warning Banners (US-030) */}
+      {/* Freshness & conflict warning banners */}
       {conflicts && conflicts.length > 0 && (
         <div className="guardrail-banner conflict-banner" style={{ backgroundColor: '#fff7ed', borderColor: '#f97316' }} role="alert">
           <span className="guardrail-icon">⚡</span>
@@ -198,7 +198,7 @@ export default function CitationList({ citations = [], guardrailFlags = [], conf
                     </div>
 
                     {item.last_modified_date && (
-                      <div className="citation-date-meta" style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>
+                      <div className="citation-date-meta" style={{ fontSize: '0.75rem', color: 'var(--color-muted)', marginTop: '4px' }}>
                         📅 Modified: {item.last_modified_date}
                       </div>
                     )}

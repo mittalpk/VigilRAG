@@ -62,16 +62,15 @@ export default function FeedbackReview() {
     <div className="card fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h2 className="card-title">Feedback Review Queue</h2>
+          <h2 className="card-title">Feedback review</h2>
           <p className="card-hint">
-            Review user-flagged negative feedback entries, curate expected golden answers, and promote failure cases into the evaluation dataset (US-020).
+            Review flagged answers, capture expected responses, and promote cases into the evaluation set.
           </p>
         </div>
-        <span className="badge badge-info">FR-009 / US-020 Admin Queue</span>
       </div>
 
       <div className="mt-16" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Filter Status:</span>
+        <span style={{ fontSize: '0.85rem', color: 'var(--color-muted)' }}>Filter Status:</span>
         {['pending', 'promoted', 'dismissed', 'needs_investigation', ''].map((st) => (
           <button
             key={st}
@@ -90,14 +89,14 @@ export default function FeedbackReview() {
       {error && (
         <div className="error-card mt-16 p-12">
           <span className="badge badge-error">Review Error</span>
-          <p style={{ color: '#f87171', marginTop: 4 }}>{error}</p>
+          <p style={{ color: 'var(--color-error)', marginTop: 4 }}>{error}</p>
         </div>
       )}
 
       <div className="table-responsive mt-24">
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #334155', color: '#94a3b8', fontSize: '0.85rem' }}>
+            <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-muted)', fontSize: '0.85rem' }}>
               <th style={{ padding: '12px 8px' }}>Created At</th>
               <th style={{ padding: '12px 8px' }}>Requester</th>
               <th style={{ padding: '12px 8px' }}>Query Text</th>
@@ -109,29 +108,29 @@ export default function FeedbackReview() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
+                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: 'var(--color-muted)' }}>
                   Loading feedback review items...
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: 'var(--color-muted)' }}>
                   No items in review queue matching filter.
                 </td>
               </tr>
             ) : (
               items.map((item) => (
-                <tr key={item.id} style={{ borderBottom: '1px solid #1e293b', fontSize: '0.9rem' }}>
-                  <td style={{ padding: '10px 8px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                <tr key={item.id} style={{ borderBottom: '1px solid var(--color-surface-muted)', fontSize: '0.9rem' }}>
+                  <td style={{ padding: '10px 8px', color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
                     {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}
                   </td>
-                  <td style={{ padding: '10px 8px', color: '#cbd5e1' }}>
+                  <td style={{ padding: '10px 8px', color: 'var(--color-text)' }}>
                     {item.requester_identity}
                   </td>
-                  <td style={{ padding: '10px 8px', color: '#f8fafc', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <td style={{ padding: '10px 8px', color: 'var(--color-ink)', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {item.query_text}
                   </td>
-                  <td style={{ padding: '10px 8px', color: '#f87171', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <td style={{ padding: '10px 8px', color: 'var(--color-error)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {item.user_comment || 'No comment provided.'}
                   </td>
                   <td style={{ padding: '10px 8px' }}>
@@ -160,7 +159,7 @@ export default function FeedbackReview() {
 
       {/* Pagination Controls */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
-        <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--color-muted)' }}>
           Page {page} of {totalPages} ({total} queue items)
         </span>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -183,10 +182,10 @@ export default function FeedbackReview() {
 
       {/* Action Modal */}
       {activeItem && (
-        <div className="modal-backdrop fade-in" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="modal-card" style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', padding: '24px', maxWidth: '750px', width: '90%', maxHeight: '85vh', overflowY: 'auto' }}>
+        <div className="modal-backdrop fade-in" style={{ position: 'fixed', inset: 0, background: 'rgba(18, 32, 51, 0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="modal-card" style={{ background: 'var(--color-surface-muted)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '24px', maxWidth: '750px', width: '90%', maxHeight: '85vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, color: '#f8fafc' }}>Review & Curate Feedback Item</h3>
+              <h3 style={{ margin: 0, color: 'var(--color-ink)' }}>Review & Curate Feedback Item</h3>
               <button
                 className="btn-secondary"
                 style={{ padding: '4px 10px' }}
@@ -196,31 +195,31 @@ export default function FeedbackReview() {
               </button>
             </div>
 
-            <div style={{ background: '#1e293b', padding: '12px', borderRadius: '6px', marginBottom: '16px', fontSize: '0.9rem' }}>
+            <div style={{ background: 'var(--color-surface-muted)', padding: '12px', borderRadius: '6px', marginBottom: '16px', fontSize: '0.9rem' }}>
               <div style={{ marginBottom: '8px' }}>
-                <strong style={{ color: '#94a3b8' }}>Query Text:</strong>
-                <div style={{ color: '#f8fafc', marginTop: '2px' }}>{activeItem.query_text}</div>
+                <strong style={{ color: 'var(--color-muted)' }}>Query Text:</strong>
+                <div style={{ color: 'var(--color-ink)', marginTop: '2px' }}>{activeItem.query_text}</div>
               </div>
               <div style={{ marginBottom: '8px' }}>
-                <strong style={{ color: '#94a3b8' }}>System Answer Given:</strong>
-                <div style={{ color: '#cbd5e1', marginTop: '2px', background: '#0f172a', padding: '8px', borderRadius: '4px' }}>
+                <strong style={{ color: 'var(--color-muted)' }}>System Answer Given:</strong>
+                <div style={{ color: 'var(--color-text)', marginTop: '2px', background: 'var(--color-surface-muted)', padding: '8px', borderRadius: '4px' }}>
                   {activeItem.answer_text || 'No system answer recorded.'}
                 </div>
               </div>
               <div>
-                <strong style={{ color: '#94a3b8' }}>User Feedback Comment:</strong>
-                <div style={{ color: '#f87171', marginTop: '2px' }}>{activeItem.user_comment || 'None provided.'}</div>
+                <strong style={{ color: 'var(--color-muted)' }}>User Feedback Comment:</strong>
+                <div style={{ color: 'var(--color-error)', marginTop: '2px' }}>{activeItem.user_comment || 'None provided.'}</div>
               </div>
             </div>
 
             <div className="form-group mb-16">
-              <label style={{ fontSize: '0.85rem', color: '#38bdf8', fontWeight: 600 }}>
-                Expected Golden Answer (Required for Dataset Promotion):
+              <label style={{ fontSize: '0.85rem', color: 'var(--color-accent)', fontWeight: 600 }}>
+                Expected answer (required to promote):
               </label>
               <textarea
                 className="task-input mt-4"
                 rows={3}
-                placeholder="Enter verified correct answer to add as a golden EvaluationCase..."
+                placeholder="Enter the verified correct answer for the evaluation set…"
                 value={goldenAnswerInput}
                 onChange={(e) => setGoldenAnswerInput(e.target.value)}
                 style={{ fontSize: '0.85rem' }}
@@ -230,7 +229,7 @@ export default function FeedbackReview() {
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
               <button
                 className="btn-secondary"
-                style={{ borderColor: '#64748b' }}
+                style={{ borderColor: 'var(--color-muted)' }}
                 disabled={actionLoading}
                 onClick={() => handleAction(activeItem.id, 'dismiss')}
               >
@@ -238,7 +237,7 @@ export default function FeedbackReview() {
               </button>
               <button
                 className="btn-secondary"
-                style={{ borderColor: '#f59e0b', color: '#fbbf24' }}
+                style={{ borderColor: '#f59e0b', color: 'var(--color-warn)' }}
                 disabled={actionLoading}
                 onClick={() => handleAction(activeItem.id, 'needs_investigation')}
               >
@@ -246,7 +245,7 @@ export default function FeedbackReview() {
               </button>
               <button
                 className="btn-primary"
-                style={{ background: '#059669', borderColor: '#10b981' }}
+                style={{ background: 'var(--color-success)', borderColor: 'var(--color-success)' }}
                 disabled={actionLoading}
                 onClick={() => handleAction(activeItem.id, 'promote')}
               >

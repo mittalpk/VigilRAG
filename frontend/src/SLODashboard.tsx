@@ -46,24 +46,24 @@ export const SLODashboard: React.FC = () => {
   const meeting = rolling >= (data?.target_pct ?? SLO_TARGET)
 
   return (
-    <div className="slo-dashboard" style={{ padding: '1.5rem', background: '#0f172a', color: '#f8fafc', borderRadius: '12px' }}>
+    <div className="slo-dashboard" style={{ padding: '1.5rem', background: 'var(--color-surface)', color: 'var(--color-text)', borderRadius: '12px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>Availability SLO Dashboard</h2>
-          <p style={{ margin: '0.25rem 0 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>
-            Query-path uptime vs {data?.target_pct ?? SLO_TARGET}% MVP target (NFR-008) — 30-day rolling
+          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>Availability</h2>
+          <p style={{ margin: '0.25rem 0 0 0', color: 'var(--color-muted)', fontSize: '0.875rem' }}>
+            Query-path uptime against the {data?.target_pct ?? SLO_TARGET}% target · 30-day rolling window
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <button
             onClick={evaluateAlert}
-            style={{ background: '#0ea5e9', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}
+            style={{ background: 'var(--color-accent)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}
           >
             Evaluate Alert
           </button>
           <button
             onClick={fetchData}
-            style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}
+            style={{ background: 'var(--color-ink)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}
           >
             Refresh
           </button>
@@ -71,7 +71,7 @@ export const SLODashboard: React.FC = () => {
       </div>
 
       {error && (
-        <div style={{ background: '#7f1d1d', color: '#fca5a5', padding: '0.75rem 1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+        <div style={{ background: 'var(--color-error-soft)', color: 'var(--color-error)', padding: '0.75rem 1rem', borderRadius: '8px', marginBottom: '1rem' }}>
           {error}
         </div>
       )}
@@ -79,8 +79,8 @@ export const SLODashboard: React.FC = () => {
       {(data?.alert_active || evalMsg) && (
         <div
           style={{
-            background: data?.alert_active ? '#7f1d1d' : '#14532d',
-            color: data?.alert_active ? '#fca5a5' : '#bbf7d0',
+            background: data?.alert_active ? 'var(--color-error-soft)' : 'var(--color-success-soft)',
+            color: data?.alert_active ? 'var(--color-error)' : 'var(--color-success)',
             padding: '0.75rem 1rem',
             borderRadius: '8px',
             marginBottom: '1rem',
@@ -91,13 +91,13 @@ export const SLODashboard: React.FC = () => {
       )}
 
       {loading && !data ? (
-        <div style={{ color: '#94a3b8' }}>Loading SLO metrics…</div>
+        <div style={{ color: 'var(--color-muted)' }}>Loading SLO metrics…</div>
       ) : data ? (
         <>
           <div
             style={{
-              background: '#1e293b',
-              border: `1px solid ${meeting ? '#22c55e' : '#ef4444'}`,
+              background: 'var(--color-surface-muted)',
+              border: `1px solid ${meeting ? 'var(--color-success)' : 'var(--color-error)'}`,
               borderRadius: '10px',
               padding: '1.25rem',
               marginBottom: '1.5rem',
@@ -107,41 +107,41 @@ export const SLODashboard: React.FC = () => {
             }}
           >
             <div>
-              <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase' }}>30-day rolling</div>
-              <div style={{ fontSize: '1.75rem', fontWeight: 700, color: meeting ? '#4ade80' : '#f87171' }}>
+              <div style={{ color: 'var(--color-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>30-day rolling</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 700, color: meeting ? 'var(--color-success)' : 'var(--color-error)' }}>
                 {rolling.toFixed(3)}%
               </div>
             </div>
             <div>
-              <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase' }}>SLO target</div>
-              <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#60a5fa' }}>{data.target_pct}%</div>
+              <div style={{ color: 'var(--color-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>SLO target</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-accent)' }}>{data.target_pct}%</div>
             </div>
             <div>
-              <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase' }}>Healthy probes</div>
+              <div style={{ color: 'var(--color-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Healthy probes</div>
               <div style={{ fontSize: '1.35rem', fontWeight: 700 }}>
                 {data.successful_probes}/{data.total_probes}
               </div>
             </div>
             <div>
-              <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase' }}>Status</div>
-              <div style={{ marginTop: '0.35rem', fontWeight: 700, color: meeting ? '#4ade80' : '#f87171' }}>
+              <div style={{ color: 'var(--color-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Status</div>
+              <div style={{ marginTop: '0.35rem', fontWeight: 700, color: meeting ? 'var(--color-success)' : 'var(--color-error)' }}>
                 {meeting ? 'MEETING SLO' : 'BREACH'}
               </div>
             </div>
           </div>
 
-          <div style={{ background: '#1e293b', padding: '1.25rem', borderRadius: '10px', marginBottom: '1.5rem' }}>
-            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#cbd5e1' }}>Per-service availability</h3>
+          <div style={{ background: 'var(--color-surface-muted)', padding: '1.25rem', borderRadius: '10px', marginBottom: '1.5rem' }}>
+            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: 'var(--color-text)' }}>Per-service availability</h3>
             {Object.keys(data.services).length === 0 ? (
-              <div style={{ color: '#64748b', fontSize: '0.875rem' }}>
-                No health probes recorded. POST /api/v1/admin/slo/probes or run the probe sampler.
+              <div style={{ color: 'var(--color-muted)', fontSize: '0.875rem' }}>
+                No health probes recorded yet. Availability samples appear once the probe sampler is running.
               </div>
             ) : (
               Object.entries(data.services).map(([name, svc]) => (
                 <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem', fontSize: '0.85rem' }}>
-                  <span style={{ width: '160px', color: '#94a3b8' }}>{name}</span>
-                  <div style={{ flex: 1, background: '#0f172a', height: '22px', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: `${Math.min(svc.availability_pct, 100)}%`, background: '#34d399', height: '100%' }} />
+                  <span style={{ width: '160px', color: 'var(--color-muted)' }}>{name}</span>
+                  <div style={{ flex: 1, background: 'var(--color-surface-muted)', height: '22px', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: `${Math.min(svc.availability_pct, 100)}%`, background: 'var(--color-success)', height: '100%' }} />
                   </div>
                   <span style={{ width: '80px', textAlign: 'right', fontWeight: 600 }}>{svc.availability_pct.toFixed(2)}%</span>
                 </div>
@@ -149,19 +149,19 @@ export const SLODashboard: React.FC = () => {
             )}
           </div>
 
-          <div style={{ background: '#1e293b', padding: '1.25rem', borderRadius: '10px', marginBottom: '1.5rem' }}>
-            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#cbd5e1' }}>Daily uptime</h3>
+          <div style={{ background: 'var(--color-surface-muted)', padding: '1.25rem', borderRadius: '10px', marginBottom: '1.5rem' }}>
+            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: 'var(--color-text)' }}>Daily uptime</h3>
             {data.daily_uptime.length === 0 ? (
-              <div style={{ color: '#64748b', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem' }}>No daily samples yet.</div>
+              <div style={{ color: 'var(--color-muted)', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem' }}>No daily samples yet.</div>
             ) : (
               data.daily_uptime.map((d) => (
                 <div key={d.date} style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
-                  <span style={{ width: '100px', fontFamily: 'monospace', color: '#94a3b8' }}>{d.date}</span>
-                  <div style={{ flex: 1, background: '#0f172a', height: '18px', borderRadius: '4px', overflow: 'hidden' }}>
+                  <span style={{ width: '100px', fontFamily: 'monospace', color: 'var(--color-muted)' }}>{d.date}</span>
+                  <div style={{ flex: 1, background: 'var(--color-surface-muted)', height: '18px', borderRadius: '4px', overflow: 'hidden' }}>
                     <div
                       style={{
                         width: `${Math.min(d.availability_pct, 100)}%`,
-                        background: d.availability_pct >= (data.target_pct ?? SLO_TARGET) ? '#22c55e' : '#ef4444',
+                        background: d.availability_pct >= (data.target_pct ?? SLO_TARGET) ? 'var(--color-success)' : 'var(--color-error)',
                         height: '100%',
                       }}
                     />
@@ -173,12 +173,12 @@ export const SLODashboard: React.FC = () => {
           </div>
 
           {data.recent_alerts.length > 0 && (
-            <div style={{ background: '#1e293b', padding: '1.25rem', borderRadius: '10px' }}>
-              <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#cbd5e1' }}>Recent alerts</h3>
+            <div style={{ background: 'var(--color-surface-muted)', padding: '1.25rem', borderRadius: '10px' }}>
+              <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: 'var(--color-text)' }}>Recent alerts</h3>
               {data.recent_alerts.map((a) => (
-                <div key={a.id} style={{ borderBottom: '1px solid #0f172a', padding: '0.5rem 0', fontSize: '0.85rem', color: '#fca5a5' }}>
+                <div key={a.id} style={{ borderBottom: '1px solid var(--color-border)', padding: '0.5rem 0', fontSize: '0.85rem', color: 'var(--color-error)' }}>
                   <div style={{ fontWeight: 600 }}>{a.message}</div>
-                  <div style={{ color: '#64748b', fontSize: '0.75rem' }}>
+                  <div style={{ color: 'var(--color-muted)', fontSize: '0.75rem' }}>
                     {a.created_at} · channel={a.channel} · delivered={String(a.delivered)}
                   </div>
                 </div>
